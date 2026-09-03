@@ -1,0 +1,9 @@
+node_modules
+dist
+.DS_Store
+.playwright-mcp
+
+# Material original de referencia (diseños de Canva, documentación de la
+# licitación): no hace falta para desplegar la web, y la carpeta info/
+# incluye documentos administrativos de la subvención.
+_fuente

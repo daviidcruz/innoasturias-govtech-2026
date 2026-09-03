@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Tipografía Mont (Fontfabric) — la de los diseños de Canva. Es comercial:
+   deja los .woff2 en /public/fonts/ con estos nombres y entra sola. Hasta
+   entonces cae en Poppins, la geométrica libre más cercana.
+--------------------------------------------------------------------------- */
+@font-face{font-family:"Mont";src:url("/fonts/Mont-Regular.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Mont";src:url("/fonts/Mont-SemiBold.woff2") format("woff2");font-weight:600;font-style:normal;font-display:swap}
+@font-face{font-family:"Mont";src:url("/fonts/Mont-Bold.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap}
+@font-face{font-family:"Mont";src:url("/fonts/Mont-Heavy.woff2") format("woff2");font-weight:800;font-style:normal;font-display:swap}
+
+@theme {
+  --font-sans: "Mont", "Poppins", ui-sans-serif, system-ui, sans-serif;
+
+  --color-teal: #29a3c1;
+  --color-azure: #55a9ff;
+  --color-navy: #0b1b3a;
+  --color-ink: #060f22;
+  --color-coral: #f4607c;
+  --color-blush: #f9a8bd;
+  --color-lilac: #a9a7ea;
+  --color-mint: #7fe3d0;
+
+  --radius-card: 1.5rem;
+  --radius-panel: 2rem;
+  --radius-plate: 2.75rem;
+}
+
+@layer base {
+  html {
+    background: var(--color-ink);
+    scroll-behavior: smooth;
+    scroll-padding-top: 6.5rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    /* El fondo lo pinta <Backdrop/>: fijo, detrás de todo el documento */
+    background: transparent;
+    @apply font-sans text-white/80 antialiased;
+    font-feature-settings: "kern" 1;
+  }
+  h1, h2, h3, h4 { @apply text-white; text-wrap: balance; }
+  p { text-wrap: pretty; }
+
+  :root {
+    color-scheme: dark;
+    accent-color: var(--color-azure);
+    caret-color: var(--color-blush);
+    scrollbar-color: color-mix(in oklab, var(--color-azure) 55%, transparent) var(--color-ink);
+    scrollbar-width: thin;
+  }
+  ::selection { background: var(--color-coral); color: #fff; }
+  :focus-visible { outline: 2px solid var(--color-blush); outline-offset: 3px; border-radius: 999px; }
+  .tnum { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+}
+
+@layer utilities {
+  /* ---------------------------------------------------------------------
+     Un solo material para toda la página: cristal translúcido sobre el
+     fondo fijo. Tres pesos, según cuánto tenga que sostener el elemento.
+  --------------------------------------------------------------------- */
+  .glass-1 {
+    background: linear-gradient(152deg, rgba(255,255,255,.17), rgba(255,255,255,.05) 46%, rgba(255,255,255,.1));
+    backdrop-filter: blur(28px) saturate(140%);
+    -webkit-backdrop-filter: blur(28px) saturate(140%);
+    border: 1px solid rgba(255,255,255,.24);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 32px 80px -36px rgba(3,10,26,.85);
+  }
+  .glass-2 {
+    background: linear-gradient(158deg, rgba(255,255,255,.11), rgba(255,255,255,.035));
+    backdrop-filter: blur(20px) saturate(130%);
+    -webkit-backdrop-filter: blur(20px) saturate(130%);
+    border: 1px solid rgba(255,255,255,.16);
+    box-shadow: 0 24px 60px -34px rgba(3,10,26,.8);
+  }
+  .glass-3 {
+    background: linear-gradient(158deg, rgba(255,255,255,.075), rgba(255,255,255,.02));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255,255,255,.12);
+  }
+  /* Texto suelto sobre la foto: una sombra suave lo despega del fondo */
+  .on-photo { text-shadow: 0 2px 26px rgba(4, 11, 26, .6); }
+}
+
+/* Un fondo fijo con muchos paneles desenfocados encima cuesta GPU. En móvil
+   se recorta el radio del blur: el material se mantiene, el scroll no sufre. */
+@media (max-width: 640px) {
+  .glass-1 { backdrop-filter: blur(16px) saturate(130%); -webkit-backdrop-filter: blur(16px) saturate(130%); }
+  .glass-2 { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  .glass-3 { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+}
+
+/* ===========================================================================
+   MOTION
+   Momento focal: la portada entra en foco como el cartel.
+   Mecanismo: el fondo no se mueve y el contenido flota sobre él. Cada panel
+   emerge al entrar, y en el programa el bloque que estás leyendo pasa al
+   primer plano. El material hace de reloj: no hay línea de progreso.
+   =========================================================================== */
+
+@keyframes plate-settle { from{opacity:0;transform:translateY(16px) scale(.985)} to{opacity:1;transform:none} }
+@keyframes wordmark-wipe { from{clip-path:inset(0 100% 0 0);filter:blur(12px);opacity:0} to{clip-path:inset(0 -2% 0 0);filter:blur(0);opacity:1} }
+@keyframes fade-up { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
+
+.anim-plate { animation: plate-settle 1s cubic-bezier(.16,1,.3,1) both; }
+.anim-wordmark { animation: wordmark-wipe 1.15s cubic-bezier(.16,1,.3,1) .22s both; }
+.anim-step { animation: fade-up .8s cubic-bezier(.16,1,.3,1) both; }
+
+/* Revelado al entrar. Sin JS todo queda visible: el estado oculto sólo
+   existe bajo .js */
+.js [data-reveal] { opacity: 0; }
+.js [data-reveal="up"]   { transform: translateY(30px); }
+.js [data-reveal="rise"] { transform: translateY(14px); }
+.js [data-reveal="lift"] { transform: translateY(38px) scale(.985); }
+.js [data-reveal][data-revealed] {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity .85s cubic-bezier(.16,1,.3,1) var(--d, 0ms),
+    transform .95s cubic-bezier(.16,1,.3,1) var(--d, 0ms);
+}
+
+/* El bloque de programa que cruza la línea de lectura pasa al primer plano */
+.slot {
+  transition:
+    background-color .5s cubic-bezier(.16,1,.3,1),
+    border-color .5s ease,
+    box-shadow .5s ease,
+    transform .5s cubic-bezier(.16,1,.3,1);
+}
+.js .slot.is-now {
+  background: linear-gradient(158deg, rgba(255,255,255,.19), rgba(255,255,255,.06));
+  border-color: rgba(255,255,255,.32);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 30px 70px -34px rgba(3,10,26,.9);
+  transform: scale(1.015);
+}
+.slot__hour { transition: color .45s ease; }
+.js .slot.is-now .slot__hour { color: #fff; }
+
+/* El Radar converge sobre el punto de cruce */
+.js .quad { opacity: 0; }
+.radar[data-revealed] .quad { animation: quad-in .9s cubic-bezier(.16,1,.3,1) var(--d,0ms) both; }
+@keyframes quad-in { from{opacity:0;transform:translate(var(--fx),var(--fy))} to{opacity:1;transform:none} }
+@keyframes ring-pulse { 0%{opacity:0;transform:scale(.82)} 60%{opacity:1} 100%{opacity:1;transform:scale(1)} }
+.js .radar .rings { opacity: 0; }
+.radar[data-revealed] .rings { animation: ring-pulse 1.4s cubic-bezier(.16,1,.3,1) .3s both; }
+.js .radar .cross { opacity: 0; }
+.radar[data-revealed] .cross { animation: fade-up .7s cubic-bezier(.16,1,.3,1) .95s both; }
+
+/* Realimentación */
+.lift { transition: transform .3s cubic-bezier(.16,1,.3,1), background-color .3s ease, border-color .3s ease; }
+.lift:hover { transform: translateY(-4px); }
+.press { transition: transform .12s ease, background-color .2s ease, color .2s ease, border-color .2s ease; }
+.press:active { transform: scale(.97); }
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-plate, .anim-wordmark, .anim-step,
+  .radar[data-revealed] .quad, .radar[data-revealed] .rings, .radar[data-revealed] .cross { animation: none !important; }
+  .js [data-reveal] { opacity: 1; transform: none; }
+  .js [data-reveal][data-revealed] { transition: none; }
+  .js .radar .quad, .js .radar .rings, .js .radar .cross { opacity: 1; }
+  .js .slot.is-now { transform: none; }
+  .lift:hover { transform: none; }
+  html { scroll-behavior: auto; }
+}
