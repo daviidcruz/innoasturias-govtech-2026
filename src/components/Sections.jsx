@@ -47,7 +47,17 @@ export function CuentaAtras() {
           <Countdown />
         </div>
 
-        <dl className="mx-auto mt-8 grid max-w-[46rem] grid-cols-1 gap-px overflow-hidden rounded-card bg-white/10 sm:grid-cols-3">
+        {/* En móvil, tres filas apiladas con su propio recuadro pesaban más
+            que la propia cuenta atrás — el dato secundario ganaba al
+            protagonista. Ahí va suelto, en una línea; el recuadro de tres
+            columnas se reserva para donde sí hay sitio de sobra. */}
+        <p className="mx-auto mt-7 max-w-[24rem] text-[0.8125rem] leading-relaxed text-white/70 sm:hidden">
+          {/* Espacio irrompible antes del separador: si hay que partir línea,
+              el salto cae después del "·", nunca lo deja huérfano al inicio. */}
+          {datos.map(([, v]) => v).join(' · ')}
+        </p>
+
+        <dl className="mx-auto mt-8 hidden max-w-[46rem] grid-cols-1 gap-px overflow-hidden rounded-card bg-white/10 sm:grid sm:grid-cols-3">
           {datos.map(([k, v]) => (
             <div key={k} className="bg-white/[0.04] px-5 py-4">
               <dt className="text-[0.625rem] font-bold uppercase tracking-[0.17em] text-white/55">

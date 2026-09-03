@@ -9,21 +9,26 @@ export default function Hero() {
   return (
     <section
       id="top"
-      className="relative flex min-h-[100svh] flex-col px-3 pb-3 pt-[6rem] sm:px-5 sm:pb-5 sm:pt-[6.75rem]"
+      className="relative flex min-h-0 flex-col px-3 pb-3 pt-[6rem] sm:min-h-[100svh] sm:px-5 sm:pb-5 sm:pt-[6.75rem]"
     >
-      <div className="anim-plate glass-1 relative mx-auto flex w-full max-w-[84rem] flex-1 flex-col rounded-panel px-6 py-[min(2.5rem,4vh)] sm:rounded-plate sm:px-9 lg:px-14">
-        <div className="flex items-start justify-between gap-6">
+      <div className="anim-plate glass-1 relative mx-auto flex w-full max-w-[84rem] flex-1 flex-col rounded-panel px-6 py-8 sm:py-[min(2.5rem,4vh)] sm:rounded-plate sm:px-9 lg:px-14">
+        <div className="flex items-center justify-between gap-6">
           <span className="text-[clamp(1.75rem,min(4vw,5.5vh),3.75rem)] font-extrabold leading-none tracking-[-0.03em] text-white">
             2026
           </span>
+          {/* En pantallas cortas el giro quedaba diminuto (48px) con un hueco
+              vacío debajo hasta el resto del contenido, empujado al fondo por
+              el mt-auto de más abajo. Aquí crece y se centra con el "2026":
+              dos elementos de la cabecera, no un icono perdido arriba de un
+              vacío. */}
           <img
             src="/brand/rays.png"
             alt=""
-            className="h-[clamp(3rem,min(8vw,15vh),12rem)] w-auto"
+            className="h-16 w-auto sm:h-[clamp(3rem,min(8vw,15vh),12rem)]"
           />
         </div>
 
-        <div className="mt-auto">
+        <div className="mt-8 sm:mt-auto">
           {/* La entrada es gratuita: es lo primero que tiene que quedar claro */}
           <div className="anim-step mb-[min(1.25rem,2vh)] flex flex-wrap items-center gap-2">
             <span className="rounded-full bg-mint/95 px-3.5 py-1.5 text-[0.6875rem] font-extrabold uppercase tracking-[0.15em] text-ink">
