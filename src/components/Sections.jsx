@@ -41,34 +41,13 @@ export function CuentaAtras() {
 
   return (
     <Shell innerRef={ref} className="pb-16 pt-20 sm:pb-20 sm:pt-24">
-      <div data-reveal="lift" className="glass-2 rounded-panel p-7 sm:p-10">
-        <div className="flex flex-wrap items-end justify-between gap-x-12 gap-y-8">
-          <div>
-            <p className="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-blush">
-              Faltan
-            </p>
-            <div className="mt-5">
-              <Countdown />
-            </div>
-          </div>
-
-          <a
-            href={evento.inscripcion}
-            target="_blank"
-            rel="noopener"
-            className="press group inline-flex items-center gap-2.5 rounded-full bg-white px-6 py-3 text-[0.9rem] font-bold text-navy hover:bg-blush"
-          >
-            Reservar plaza gratis
-            <span
-              className="text-[1rem] leading-none transition-transform duration-300 group-hover:translate-x-1"
-              aria-hidden="true"
-            >
-              &rarr;
-            </span>
-          </a>
+      <div data-reveal="lift" className="glass-2 rounded-panel p-7 text-center sm:p-10">
+        <p className="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-blush">Faltan</p>
+        <div className="mt-5">
+          <Countdown />
         </div>
 
-        <dl className="mt-8 grid grid-cols-1 gap-px overflow-hidden rounded-card bg-white/10 sm:grid-cols-3">
+        <dl className="mx-auto mt-8 grid max-w-[46rem] grid-cols-1 gap-px overflow-hidden rounded-card bg-white/10 sm:grid-cols-3">
           {datos.map(([k, v]) => (
             <div key={k} className="bg-white/[0.04] px-5 py-4">
               <dt className="text-[0.625rem] font-bold uppercase tracking-[0.17em] text-white/55">
@@ -343,51 +322,36 @@ export function Footer() {
               </a>
             </div>
 
-            <div className="flex flex-col gap-8 lg:items-end">
-              <div>
-                <p className="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-white/55 lg:text-right">
-                  Organiza
-                </p>
-                <div className="mt-4 flex items-center gap-6 sm:gap-8">
-                  <img
-                    src="/brand/novagob.png"
-                    alt="Fundación NovaGob"
-                    className="h-9 w-auto sm:h-10"
-                  />
-                  <span className="h-9 w-px bg-white/25" aria-hidden="true" />
-                  <img
-                    src="/brand/asturias.png"
-                    alt="Principado de Asturias"
-                    className="h-10 w-auto sm:h-11"
-                  />
-                </div>
+            <div>
+              <p className="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-white/55 lg:text-right">
+                Organiza
+              </p>
+              <div className="mt-4 flex items-center gap-6 sm:gap-8 lg:justify-end">
+                <img
+                  src="/brand/novagob.png"
+                  alt="Fundación NovaGob"
+                  className="h-9 w-auto sm:h-10"
+                />
+                <span className="h-9 w-px bg-white/25" aria-hidden="true" />
+                <img
+                  src="/brand/asturias.png"
+                  alt="Principado de Asturias"
+                  className="h-10 w-auto sm:h-11"
+                />
               </div>
-
-              <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[0.875rem] text-white/75 lg:justify-end">
-                <a href="#encuentro" className="transition-colors hover:text-white">
-                  El encuentro
-                </a>
-                <a href="#programa" className="transition-colors hover:text-white">
-                  La jornada
-                </a>
-                <a href="#participantes" className="transition-colors hover:text-white">
-                  Quién viene
-                </a>
-                <a
-                  href="https://novagob.org"
-                  target="_blank"
-                  rel="noopener"
-                  className="transition-colors hover:text-white"
-                >
-                  novagob.org
-                </a>
-              </nav>
             </div>
           </div>
 
-          <p className="mt-10 border-t border-white/12 pt-6 text-[0.8125rem] text-white/55">
-            © {new Date().getFullYear()} Fundación NovaGob
-          </p>
+          <div className="mt-10 border-t border-white/12 pt-6">
+            <a
+              href="https://novagob.org"
+              target="_blank"
+              rel="noopener"
+              className="text-[0.8125rem] text-white/55 transition-colors hover:text-white"
+            >
+              © {new Date().getFullYear()} Fundación NovaGob
+            </a>
+          </div>
         </div>
       </div>
     </footer>

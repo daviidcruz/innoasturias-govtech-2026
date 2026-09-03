@@ -35,14 +35,14 @@ export default function Countdown() {
 
   if (!t) {
     return (
-      <p className="text-[1.0625rem] font-semibold text-white">
+      <p className="text-center text-[1.0625rem] font-semibold text-white">
         La jornada ya se ha celebrado. Gracias a quienes vinieron.
       </p>
     )
   }
 
   return (
-    <div className="flex flex-wrap items-end gap-x-3 gap-y-4 sm:gap-x-5">
+    <div className="flex flex-wrap items-end justify-center gap-x-3 gap-y-4 sm:gap-x-5">
       {UNIDADES.map(([clave, etiqueta], i) => (
         <div key={clave} className="flex items-end gap-3 sm:gap-5">
           {i > 0 && (

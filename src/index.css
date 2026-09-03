@@ -73,6 +73,14 @@
     -webkit-backdrop-filter: blur(20px) saturate(130%);
     border: 1px solid rgba(255,255,255,.16);
     box-shadow: 0 24px 60px -34px rgba(3,10,26,.8);
+    transition: background .5s ease, border-color .5s ease;
+  }
+  /* El menú, al encogerse en el scroll, se oscurece un punto para que el
+     texto siga legible sobre lo que pase por debajo — sigue siendo cristal
+     translúcido, sólo con más peso. */
+  .glass-2--dim {
+    background: linear-gradient(158deg, rgba(10,18,38,.62), rgba(10,18,38,.42));
+    border-color: rgba(255,255,255,.14);
   }
   .glass-3 {
     background: linear-gradient(158deg, rgba(255,255,255,.075), rgba(255,255,255,.02));
@@ -130,14 +138,16 @@
     box-shadow .5s ease,
     transform .5s cubic-bezier(.16,1,.3,1);
 }
-.js .slot.is-now {
+.js .slot.is-now,
+.slot[data-revealed]:hover {
   background: linear-gradient(158deg, rgba(255,255,255,.19), rgba(255,255,255,.06));
   border-color: rgba(255,255,255,.32);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 30px 70px -34px rgba(3,10,26,.9);
   transform: scale(1.015);
 }
 .slot__hour { transition: color .45s ease; }
-.js .slot.is-now .slot__hour { color: #fff; }
+.js .slot.is-now .slot__hour,
+.slot[data-revealed]:hover .slot__hour { color: #fff; }
 
 /* El Radar converge sobre el punto de cruce */
 .js .quad { opacity: 0; }
@@ -161,7 +171,7 @@
   .js [data-reveal] { opacity: 1; transform: none; }
   .js [data-reveal][data-revealed] { transition: none; }
   .js .radar .quad, .js .radar .rings, .js .radar .cross { opacity: 1; }
-  .js .slot.is-now { transform: none; }
+  .js .slot.is-now, .slot[data-revealed]:hover { transform: none; }
   .lift:hover { transform: none; }
   html { scroll-behavior: auto; }
 }

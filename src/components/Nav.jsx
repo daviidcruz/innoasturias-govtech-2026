@@ -33,7 +33,7 @@ export default function Nav() {
       <div
         className={`glass-2 mx-auto flex items-center gap-3 rounded-full transition-all duration-500 ease-[cubic-bezier(.16,1,.3,1)] ${
           scrolled
-            ? 'max-w-[72rem] py-2 pl-4 pr-2 sm:pl-5'
+            ? 'glass-2--dim max-w-[72rem] py-2 pl-4 pr-2 sm:pl-5'
             : 'max-w-[84rem] py-2.5 pl-5 pr-2.5 sm:pl-6'
         }`}
       >
