@@ -3,6 +3,12 @@
 Landing del evento, promovido por Fundación NovaGob con el Principado de Asturias.
 Stack: **Vite + React + Tailwind CSS v4**.
 
+- Producción: <https://innoasturias-govtech-2026.vercel.app>
+- Repositorio: <https://github.com/daviidcruz/innoasturias-govtech-2026>
+
+Desplegado en Vercel, enlazado a este repositorio: cada push a `main` construye
+y publica solo.
+
 ```bash
 npm install
 npm run dev      # http://localhost:5173
@@ -79,11 +85,3 @@ el degradado teal, que cubre el sangrado en ventanas más anchas que los 1920 px
 del original, con un velo oscuro hacia la izquierda para que el texto blanco
 mantenga contraste sobre las zonas rosas claras de la imagen.
 
-`Mesh.jsx` también sabe generar un mesh gradient equivalente sólo con CSS
-(nítido a cualquier resolución, 0 KB, con deriva lenta). Los demás fondos de la
-página lo usan. Para usarlo también en la portada:
-
-```jsx
-// src/components/Hero.jsx
-<Mesh variant="hero" useImage={false} />
-```
