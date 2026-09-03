@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { nav, evento } from '../data/content.js'
 
 /** Menú flotante: píldora translúcida alargada, nunca una barra negra. */
@@ -6,6 +6,9 @@ export default function Nav() {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState('')
+  const [indicator, setIndicator] = useState(null)
+  const navRef = useRef(null)
+  const linkRefs = useRef({})
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60)
@@ -28,6 +31,27 @@ export default function Nav() {
     return () => io.disconnect()
   }, [])
 
+  // La píldora del enlace activo se desliza en vez de aparecer y desaparecer
+  useEffect(() => {
+    const medir = () => {
+      const el = linkRefs.current[active]
+      const nav = navRef.current
+      if (!el || !nav) return
+      const a = el.getBoundingClientRect()
+      const b = nav.getBoundingClientRect()
+      setIndicator({ left: a.left - b.left, width: a.width })
+    }
+    medir()
+    // El contenedor cambia de ancho al encogerse (500ms): se vuelve a medir
+    // al terminar esa transición, y también al redimensionar la ventana.
+    const t = setTimeout(medir, 520)
+    window.addEventListener('resize', medir)
+    return () => {
+      clearTimeout(t)
+      window.removeEventListener('resize', medir)
+    }
+  }, [active, scrolled])
+
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-5 sm:pt-4">
       <div
@@ -37,23 +61,36 @@ export default function Nav() {
             : 'max-w-[84rem] py-2.5 pl-5 pr-2.5 sm:pl-6'
         }`}
       >
-        <a href="#top" className="flex shrink-0 items-center gap-2.5 rounded-full">
-          <img src="/brand/rays.png" alt="" className="h-6 w-auto opacity-90" />
+        <a href="#top" className="press flex shrink-0 items-center gap-2.5 rounded-full">
+          <img
+            src="/brand/rays.png"
+            alt=""
+            className="h-6 w-auto opacity-90 transition-transform duration-500 hover:rotate-90"
+          />
           <span className="text-[14.5px] font-bold tracking-tight text-white">
             InnoAsturias <span className="font-light text-white/55">GovTech</span>
           </span>
         </a>
 
-        <nav className="mx-auto hidden items-center lg:flex">
+        <nav ref={navRef} className="relative mx-auto hidden items-center lg:flex">
+          {/* Píldora deslizante detrás del enlace activo */}
+          <span
+            aria-hidden="true"
+            className={`pointer-events-none absolute inset-y-1 rounded-full bg-white/15 transition-[left,width,opacity] duration-400 ease-[cubic-bezier(.16,1,.3,1)] ${
+              indicator ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={indicator ? { left: indicator.left, width: indicator.width } : undefined}
+          />
           {nav.map((i) => (
             <a
               key={i.id}
+              ref={(el) => {
+                linkRefs.current[i.id] = el
+              }}
               href={`#${i.id}`}
               aria-current={active === i.id ? 'true' : undefined}
-              className={`rounded-full px-4 py-2 text-[13.5px] transition-colors duration-300 ${
-                active === i.id
-                  ? 'bg-white/15 font-semibold text-white'
-                  : 'text-white/65 hover:text-white'
+              className={`relative rounded-full px-4 py-2 text-[13.5px] transition-colors duration-300 ${
+                active === i.id ? 'font-semibold text-white' : 'text-white/65 hover:text-white'
               }`}
             >
               {i.label}

@@ -73,11 +73,13 @@
     -webkit-backdrop-filter: blur(20px) saturate(130%);
     border: 1px solid rgba(255,255,255,.16);
     box-shadow: 0 24px 60px -34px rgba(3,10,26,.8);
-    transition: background .5s ease, border-color .5s ease;
   }
   /* El menú, al encogerse en el scroll, se oscurece un punto para que el
      texto siga legible sobre lo que pase por debajo — sigue siendo cristal
-     translúcido, sólo con más peso. */
+     translúcido, sólo con más peso. Nada de `transition` aquí: la propiedad
+     es un atajo que sustituye por completo la lista que ya trae la utilidad
+     `transition-all` del propio menú; declarada dos veces, gana una sola y
+     la otra deja de animar en silencio. Una única fuente para la transición. */
   .glass-2--dim {
     background: linear-gradient(158deg, rgba(10,18,38,.62), rgba(10,18,38,.42));
     border-color: rgba(255,255,255,.14);
@@ -149,15 +151,34 @@
 .js .slot.is-now .slot__hour,
 .slot[data-revealed]:hover .slot__hour { color: #fff; }
 
-/* El Radar converge sobre el punto de cruce */
+/* El Radar converge sobre el punto de cruce, y cada cuadrante responde al
+   cursor: es el único bloque de contenido de la página sin ningún feedback
+   al pasar por encima, pese a ser el más "instrumento" de los cuatro. */
 .js .quad { opacity: 0; }
 .radar[data-revealed] .quad { animation: quad-in .9s cubic-bezier(.16,1,.3,1) var(--d,0ms) both; }
+.quad {
+  transition: background-color .35s ease;
+}
+.quad:hover {
+  background-color: rgba(255,255,255,.045);
+}
+.quad h3 { transition: color .35s ease; }
+.quad:hover h3 { color: var(--color-blush); }
 @keyframes quad-in { from{opacity:0;transform:translate(var(--fx),var(--fy))} to{opacity:1;transform:none} }
 @keyframes ring-pulse { 0%{opacity:0;transform:scale(.82)} 60%{opacity:1} 100%{opacity:1;transform:scale(1)} }
 .js .radar .rings { opacity: 0; }
 .radar[data-revealed] .rings { animation: ring-pulse 1.4s cubic-bezier(.16,1,.3,1) .3s both; }
 .js .radar .cross { opacity: 0; }
 .radar[data-revealed] .cross { animation: fade-up .7s cubic-bezier(.16,1,.3,1) .95s both; }
+
+/* La cuenta atrás respira: los dos puntos parpadean como en un reloj real,
+   y cada cifra hace un pequeño "tick" de entrada cuando cambia — el key de
+   React cambia con el valor, así que el span se remonta solo y la animación
+   se dispara sin ningún JS imperativo. */
+@keyframes colon-blink { 0%, 45% { opacity: 1; } 50%, 95% { opacity: .25; } 100% { opacity: 1; } }
+.colon-blink { animation: colon-blink 2s steps(1, end) infinite; }
+@keyframes tick-in { from { opacity: .35; transform: translateY(-8px) scale(.94); } to { opacity: 1; transform: none; } }
+.tick { animation: tick-in .4s cubic-bezier(.16,1,.3,1) both; }
 
 /* Realimentación */
 .lift { transition: transform .3s cubic-bezier(.16,1,.3,1), background-color .3s ease, border-color .3s ease; }
@@ -167,7 +188,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .anim-plate, .anim-wordmark, .anim-step,
-  .radar[data-revealed] .quad, .radar[data-revealed] .rings, .radar[data-revealed] .cross { animation: none !important; }
+  .radar[data-revealed] .quad, .radar[data-revealed] .rings, .radar[data-revealed] .cross,
+  .colon-blink, .tick { animation: none !important; }
   .js [data-reveal] { opacity: 1; transform: none; }
   .js [data-reveal][data-revealed] { transition: none; }
   .js .radar .quad, .js .radar .rings, .js .radar .cross { opacity: 1; }

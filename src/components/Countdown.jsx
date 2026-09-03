@@ -48,13 +48,18 @@ export default function Countdown() {
           {i > 0 && (
             <span
               aria-hidden="true"
-              className="mb-[0.9rem] text-[clamp(1.5rem,3vw,2.25rem)] font-light leading-none text-white/30"
+              className="colon-blink mb-[0.9rem] text-[clamp(1.5rem,3vw,2.25rem)] font-light leading-none text-white/30"
             >
               :
             </span>
           )}
           <div className="text-center">
-            <span className="tnum block text-[clamp(2.5rem,6.5vw,4.75rem)] font-extrabold leading-[0.85] tracking-[-0.045em] text-white">
+            {/* La key cambia con cada cifra: React remonta el span y el
+                "tick" de entrada se dispara solo, sin JS imperativo. */}
+            <span
+              key={t[clave]}
+              className="tick tnum block text-[clamp(2.5rem,6.5vw,4.75rem)] font-extrabold leading-[0.85] tracking-[-0.045em] text-white"
+            >
               {String(t[clave]).padStart(2, '0')}
             </span>
             <span className="mt-2 block text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-white/60">
