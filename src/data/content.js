@@ -6,7 +6,8 @@ export const evento = {
   fecha: 'Miércoles 30 de septiembre de 2026',
   // Hora oficial de comienzo, en hora peninsular (CEST en septiembre)
   fechaISO: '2026-09-30T09:00:00+02:00',
-  lugar: 'Oviedo · Sede por confirmar',
+  lugar: 'Salón AB · Cámara de Comercio de Oviedo',
+  direccion: 'Calle Quintana, 32, Oviedo',
   inscripcion: 'https://luma.com/2nzua3op',
   formato: 'Media jornada · 09:00 – 14:30',
   entrada: 'Entrada gratuita',

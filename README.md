@@ -3,11 +3,13 @@
 Landing del evento, promovido por Fundación NovaGob con el Principado de Asturias.
 Stack: **Vite + React + Tailwind CSS v4**.
 
-- Producción: <https://innoasturias-govtech-2026.vercel.app>
+- Producción: <https://innoasturias.novagob.org> (dominio propio; el proyecto
+  también responde en <https://innoasturias-govtech-2026.vercel.app>)
 - Repositorio: <https://github.com/daviidcruz/innoasturias-govtech-2026>
 
 Desplegado en Vercel, enlazado a este repositorio: cada push a `main` construye
-y publica solo.
+y publica solo. Lleva **Vercel Analytics** (`@vercel/analytics`), visible en
+el panel del proyecto → pestaña Analytics.
 
 ```bash
 npm install
@@ -52,7 +54,9 @@ En móvil se recorta el radio del desenfoque: un fondo fijo con muchos paneles
 En `src/data/content.js`:
 
 - **Fecha**: miércoles 30 de septiembre de 2026.
-- **Lugar**: Oviedo. La sede concreta sigue sin confirmar.
+- **Lugar**: Salón AB, Cámara de Comercio de Oviedo · Calle Quintana, 32,
+  Oviedo. El botón «Cómo llegar» de la cuenta atrás abre esta dirección en
+  Google Maps.
 - **Inscripción**: <https://luma.com/2nzua3op>. Todos los CTA («Quiero
   participar» del menú y de la portada, «Reservar mi plaza» del cierre) salen
   de `evento.inscripcion`, así que se cambia en un solo sitio.
@@ -60,6 +64,23 @@ En `src/data/content.js`:
   portada, en el menú y en el cierre.
 - La sección de ponentes se retiró: no hay cartel que mostrar todavía. El
   contenido vive en el historial de git si hace falta recuperarlo.
+
+## SEO
+
+- **Meta description** en `index.html`, 148 caracteres (Google trunca a
+  partir de ~155-160; la anterior tenía 239 y se cortaba a media frase).
+- **Canonical, Open Graph y Twitter Card**, todos apuntando al dominio
+  propio (`innoasturias.novagob.org`), con imagen social dedicada
+  (`public/brand/og.jpg`, 1200×630, generada a partir del mismo fondo de la
+  portada).
+- **Datos estructurados `schema.org/Event`** en `index.html` (JSON-LD):
+  fecha, lugar, organizador y precio (gratis). Es lo que permite que Google
+  pueda mostrar esto como evento en los resultados de búsqueda, no como un
+  enlace suelto — fecha y lugar visibles directamente en el snippet.
+- `public/robots.txt` y `public/sitemap.xml`.
+
+Si cambia el dominio, hay que actualizar las URLs absolutas en `index.html`
+(canonical, `og:url`, `og:image`, el JSON-LD) y en `public/robots.txt`.
 
 ## Tipografía Mont
 

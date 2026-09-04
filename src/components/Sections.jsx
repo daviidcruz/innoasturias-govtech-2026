@@ -27,14 +27,16 @@ function Titular({ children, className = '', ...rest }) {
 
 /* -------------------------------- Cuenta atrás ----------------------------- */
 
-/* Única sección con los datos prácticos del encuentro (fecha, horario,
-   lugar) y la cuenta atrás: antes esta información estaba repetida, suelta
-   bajo la portada y otra vez aquí. Ahora vive en un solo sitio. */
-const datos = [
-  ['Fecha', evento.fecha],
-  ['Horario', '09:00 – 14:30 h'],
-  ['Lugar', evento.lugar],
-]
+/* Fecha y hora, en un dato: son cortos y van juntos. El lugar es harina de
+   otro costal —nombre del sitio y dirección postal, dos frases— así que
+   forzarlo en la misma caja de tres columnas iguales que "Fecha" y "Horario"
+   dejaba una celda desbordada y las otras dos con hueco de sobra. Ahora el
+   lugar tiene su propia tarjeta, del tamaño que le corresponde, con enlace
+   directo al mapa: información útil de verdad, no sólo texto de relleno. */
+const fechaHora = `${evento.fecha} · 09:00 – 14:30 h`
+const mapaUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+  `${evento.lugar}, ${evento.direccion}`,
+)}`
 
 export function CuentaAtras() {
   const ref = useInView()
@@ -47,26 +49,23 @@ export function CuentaAtras() {
           <Countdown />
         </div>
 
-        {/* En móvil, tres filas apiladas con su propio recuadro pesaban más
-            que la propia cuenta atrás — el dato secundario ganaba al
-            protagonista. Ahí va suelto, en una línea; el recuadro de tres
-            columnas se reserva para donde sí hay sitio de sobra. */}
-        <p className="mx-auto mt-7 max-w-[24rem] text-[0.8125rem] leading-relaxed text-white/70 sm:hidden">
-          {/* Espacio irrompible antes del separador: si hay que partir línea,
-              el salto cae después del "·", nunca lo deja huérfano al inicio. */}
-          {datos.map(([, v]) => v).join(' · ')}
-        </p>
+        <p className="mt-7 text-[0.9375rem] text-white/75">{fechaHora}</p>
 
-        <dl className="mx-auto mt-8 hidden max-w-[46rem] grid-cols-1 gap-px overflow-hidden rounded-card bg-white/10 sm:grid sm:grid-cols-3">
-          {datos.map(([k, v]) => (
-            <div key={k} className="bg-white/[0.04] px-5 py-4">
-              <dt className="text-[0.625rem] font-bold uppercase tracking-[0.17em] text-white/55">
-                {k}
-              </dt>
-              <dd className="mt-1 text-[0.95rem] font-semibold leading-snug text-white">{v}</dd>
-            </div>
-          ))}
-        </dl>
+        <div className="mx-auto mt-5 flex max-w-[26rem] flex-col items-center gap-4 rounded-card border border-white/12 bg-white/[0.04] px-6 py-5 sm:max-w-none sm:w-fit sm:flex-row sm:gap-6 sm:px-7">
+          <div>
+            <p className="text-[1rem] font-semibold leading-snug text-white">{evento.lugar}</p>
+            <p className="mt-0.5 text-[0.8125rem] text-white/60">{evento.direccion}</p>
+          </div>
+          <a
+            href={mapaUrl}
+            target="_blank"
+            rel="noopener"
+            className="press inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/25 px-5 py-2.5 text-[0.8125rem] font-semibold text-white transition-colors hover:border-white hover:bg-white/10"
+          >
+            Cómo llegar
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+        </div>
       </div>
     </Shell>
   )

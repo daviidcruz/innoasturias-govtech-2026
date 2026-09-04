@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/react'
 import Backdrop from './components/Backdrop.jsx'
 import Nav from './components/Nav.jsx'
 import Hero from './components/Hero.jsx'
@@ -19,6 +20,7 @@ export default function App() {
         <Radar />
       </main>
       <Footer />
+      <Analytics />
     </>
   )
 }

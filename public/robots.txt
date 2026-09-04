@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://innoasturias.novagob.org/sitemap.xml
