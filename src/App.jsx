@@ -1,26 +1,27 @@
+import { Suspense, lazy } from 'react'
 import { Analytics } from '@vercel/analytics/react'
-import Backdrop from './components/Backdrop.jsx'
-import Nav from './components/Nav.jsx'
-import Hero from './components/Hero.jsx'
-import { CuentaAtras, Encuentro, Jornada, Radar, Footer } from './components/Sections.jsx'
-import { useHashLanding } from './hooks/useHashLanding.js'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import Home from './pages/Home.jsx'
+
+// El Radar carga Supabase y Framer Motion — de lejos lo más pesado del
+// bundle. Quien solo visita la portada del evento (la inmensa mayoría) no
+// tiene por qué descargarlo; se pide solo al entrar en /radar/*.
+const RadarForm = lazy(() => import('./pages/radar/RadarForm.jsx'))
+const RadarPantalla = lazy(() => import('./pages/radar/RadarPantalla.jsx'))
+const RadarResultados = lazy(() => import('./pages/radar/RadarResultados.jsx'))
 
 export default function App() {
-  useHashLanding()
-
   return (
-    <>
-      <Backdrop />
-      <Nav />
-      <main>
-        <Hero />
-        <CuentaAtras />
-        <Encuentro />
-        <Jornada />
-        <Radar />
-      </main>
-      <Footer />
+    <BrowserRouter>
+      <Suspense fallback={null}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/radar" element={<RadarForm />} />
+          <Route path="/radar/pantalla" element={<RadarPantalla />} />
+          <Route path="/radar/resultados" element={<RadarResultados />} />
+        </Routes>
+      </Suspense>
       <Analytics />
-    </>
+    </BrowserRouter>
   )
 }

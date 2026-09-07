@@ -3,6 +3,12 @@ dist
 .DS_Store
 .playwright-mcp
 
+# Claves de Supabase para desarrollo local — nunca al repo, aunque sean
+# la clave pública (por higiene: el valor real vive en Vercel y en tu
+# máquina, no en el historial de git).
+.env
+.env.local
+
 # Material original de referencia (diseños de Canva, documentación de la
 # licitación): no hace falta para desplegar la web, y la carpeta info/
 # incluye documentos administrativos de la subvención.
