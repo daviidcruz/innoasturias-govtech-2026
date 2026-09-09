@@ -95,7 +95,7 @@ export default function RadarResultados() {
           </div>
         </div>
 
-        <div className="glass-3 mt-8 rounded-panel p-4 sm:p-8">
+        <div className="glass-3 relative z-10 mt-8 rounded-panel p-4 sm:p-8">
           {cargando ? (
             <p className="py-24 text-center text-white/50">Cargando…</p>
           ) : error ? (

@@ -54,9 +54,9 @@ export default function RadarForm() {
   const [dir, setDir] = useState(1)
   const [perfil, setPerfil] = useState(null)
   const [organizacion, setOrganizacion] = useState('')
-  const [visible, setVisible] = useState(false)
+  const [ocultarNombre, setOcultarNombre] = useState(false)
   const [necesidadOferta, setNecesidadOferta] = useState('')
-  const [area, setArea] = useState(null)
+  const [areas, setAreas] = useState([])
   const [enviando, setEnviando] = useState(false)
   const [enviado, setEnviado] = useState(false)
   const [error, setError] = useState(null)
@@ -71,15 +71,19 @@ export default function RadarForm() {
     ir(2)
   }
 
+  const alternarArea = (a) => {
+    setAreas((prev) => (prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]))
+  }
+
   const enviar = async () => {
     setEnviando(true)
     setError(null)
     const { error: err } = await supabase.from('radar_respuestas').insert({
       perfil,
       organizacion: organizacion.trim() || null,
-      visible: Boolean(organizacion.trim()) && visible,
+      visible: Boolean(organizacion.trim()) && !ocultarNombre,
       necesidad_oferta: necesidadOferta.trim(),
-      area,
+      areas,
     })
     setEnviando(false)
     if (err) {
@@ -194,12 +198,12 @@ export default function RadarForm() {
                       >
                         <input
                           type="checkbox"
-                          checked={visible}
-                          onChange={(e) => setVisible(e.target.checked)}
+                          checked={ocultarNombre}
+                          onChange={(e) => setOcultarNombre(e.target.checked)}
                           className="mt-0.5 h-4 w-4 shrink-0 accent-white"
                         />
-                        ¿Quieres que el nombre de tu organización sea visible en los resultados
-                        públicos?
+                        Prefiero que el nombre de mi organización no aparezca en los resultados
+                        públicos
                       </motion.label>
                     )}
 
@@ -245,17 +249,18 @@ export default function RadarForm() {
                   <div>
                     <BotonAtras onClick={() => ir(3)} />
                     <h1 className="text-[1.375rem] font-extrabold leading-tight text-white">
-                      ¿En qué área encaja esto?
+                      ¿En qué áreas encaja esto?
                     </h1>
-                    <div className="mt-6 flex flex-wrap gap-2">
+                    <p className="mt-1.5 text-[0.8125rem] text-white/55">Puedes marcar más de una.</p>
+                    <div className="mt-5 flex flex-wrap gap-2">
                       {ORDEN_AREAS.map((a) => (
                         <button
                           key={a}
                           type="button"
-                          onClick={() => setArea(a)}
-                          aria-pressed={area === a}
+                          onClick={() => alternarArea(a)}
+                          aria-pressed={areas.includes(a)}
                           className={`press rounded-full border px-4 py-2.5 text-[0.9rem] font-semibold transition-colors ${
-                            area === a
+                            areas.includes(a)
                               ? 'border-white bg-white text-navy'
                               : 'border-white/25 bg-white/10 text-white hover:border-white/45 hover:bg-white/15'
                           }`}
@@ -269,7 +274,7 @@ export default function RadarForm() {
 
                     <button
                       type="button"
-                      disabled={!area || enviando}
+                      disabled={areas.length === 0 || enviando}
                       onClick={enviar}
                       className="press mt-7 w-full rounded-full bg-white px-6 py-3.5 text-[0.95rem] font-bold text-navy transition-opacity hover:bg-blush disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white"
                     >

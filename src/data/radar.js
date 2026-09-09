@@ -35,13 +35,20 @@ export const PERFILES = {
 
 export const ORDEN_PERFILES = ['administracion', 'empresa', 'startup', 'universidad']
 
-// Los seis valores exactos que acepta la columna `area`.
+// Los valores exactos que acepta la columna `areas` (array: una respuesta
+// puede tocar más de una). Ampliado desde las seis iniciales — quedaban
+// cortas para cubrir lo que trae gente de universidad o de sostenibilidad —
+// sin irse al extremo contrario de una lista tan larga que deja de ayudar
+// a agrupar.
 export const AREAS = {
   ia_datos: 'IA y datos',
   atencion_ciudadana: 'Atención ciudadana',
   movilidad: 'Movilidad',
   ciberseguridad: 'Ciberseguridad',
   tramites_administrativos: 'Trámites administrativos',
+  sostenibilidad: 'Sostenibilidad y medio ambiente',
+  educacion: 'Educación y formación',
+  transparencia: 'Transparencia y participación',
   otros: 'Otros',
 }
 
@@ -57,4 +64,12 @@ export function preguntaReto(perfil) {
 export function etiquetaNodo(fila) {
   if (fila.visible && fila.organizacion?.trim()) return fila.organizacion.trim()
   return PERFILES[fila.perfil]?.corto ?? fila.perfil
+}
+
+/** Áreas de una fila ya normalizadas a array — por si queda alguna fila
+ *  antigua con la columna `area` (texto suelto) en vez de `areas`. */
+export function areasDeFila(fila) {
+  if (Array.isArray(fila.areas) && fila.areas.length) return fila.areas
+  if (fila.area) return [fila.area]
+  return []
 }
