@@ -33,7 +33,7 @@ function Titular({ children, className = '', ...rest }) {
    dejaba una celda desbordada y las otras dos con hueco de sobra. Ahora el
    lugar tiene su propia tarjeta, del tamaño que le corresponde, con enlace
    directo al mapa: información útil de verdad, no sólo texto de relleno. */
-const fechaHora = `${evento.fecha} · 09:00 – 14:30 h`
+const fechaHora = `${evento.fecha} · 09:00 – 14:00 h`
 const mapaUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
   `${evento.lugar}, ${evento.direccion}`,
 )}`
@@ -144,9 +144,9 @@ const tipo = {
   dinamica: { punto: 'bg-coral', label: 'Dinámica' },
 }
 
-/* El Radar ordena el ecosistema y el matching es el elemento tractor de la
-   jornada. Lo dice la memoria; que lo diga también la tipografía. */
-const destacados = new Set(['Radar del ecosistema', 'Matching'])
+/* El Radar ordena el ecosistema: es el elemento tractor de la jornada. Lo
+   dice la memoria; que lo diga también la tipografía. */
+const destacados = new Set(['Radar del ecosistema'])
 
 export function Jornada() {
   const reveal = useInView()
@@ -313,7 +313,7 @@ export function Footer() {
                 InnoAsturias <span className="font-light text-white/60">GovTech 2026</span>
               </p>
               <p className="mt-4 text-[1rem] leading-relaxed text-white/80">
-                {evento.fecha} · 09:00 – 14:30 h · Oviedo
+                {evento.fecha} · 09:00 – 14:00 h · Oviedo
               </p>
               <a
                 href={evento.inscripcion}
