@@ -79,9 +79,9 @@ export const programa = [
   },
   {
     hora: '11:10 – 11:30',
-    titulo: 'Coffee break',
+    titulo: 'Pausa para el café y networking',
     tipo: 'logistica',
-    texto: 'Pausa para el café y la conversación informal entre sesiones.',
+    texto: 'Descanso entre sesiones para tomar algo y seguir la conversación de forma informal.',
   },
   {
     hora: '11:40 – 12:00',
