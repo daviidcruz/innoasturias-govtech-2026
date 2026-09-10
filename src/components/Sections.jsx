@@ -351,7 +351,7 @@ export function Footer() {
             </div>
           </div>
 
-          <div className="mt-10 border-t border-white/12 pt-6">
+          <div className="mt-10 flex flex-col gap-3 border-t border-white/12 pt-6">
             <a
               href="https://novagob.org"
               target="_blank"
@@ -360,6 +360,11 @@ export function Footer() {
             >
               © {new Date().getFullYear()} Fundación NovaGob
             </a>
+            <p className="max-w-[52ch] text-[0.75rem] leading-relaxed text-white/40">
+              Subvencionado por el Principado de Asturias, a través de la Consejería de Ciencia,
+              Industria y Empleo, con cargo al Presupuesto General del Principado de Asturias 2026
+              (Expte. AYUD/2026/28659).
+            </p>
           </div>
         </div>
       </div>
