@@ -360,7 +360,7 @@ export function Footer() {
             >
               © {new Date().getFullYear()} Fundación NovaGob
             </a>
-            <p className="max-w-[52ch] text-[0.75rem] leading-relaxed text-white/40">
+            <p className="max-w-[86ch] text-[0.75rem] leading-relaxed text-white/40">
               Subvencionado por el Principado de Asturias, a través de la Consejería de Ciencia,
               Industria y Empleo, con cargo al Presupuesto General del Principado de Asturias 2026
               (Expte. AYUD/2026/28659).
