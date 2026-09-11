@@ -344,8 +344,8 @@ export function Footer() {
                 <span className="h-9 w-px bg-white/25" aria-hidden="true" />
                 <img
                   src="/brand/asturias.png"
-                  alt="Principado de Asturias"
-                  className="h-10 w-auto sm:h-11"
+                  alt="Principado de Asturias · Consejería de Ciencia, Industria y Empleo"
+                  className="h-7 w-auto sm:h-8"
                 />
               </div>
             </div>

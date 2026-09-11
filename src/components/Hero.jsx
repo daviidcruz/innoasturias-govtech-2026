@@ -88,8 +88,8 @@ export default function Hero() {
             <span className="h-9 w-px bg-white/25" aria-hidden="true" />
             <img
               src="/brand/asturias.png"
-              alt="Principado de Asturias"
-              className="h-[clamp(2.4rem,5.1vh,3.9rem)] w-auto"
+              alt="Principado de Asturias · Consejería de Ciencia, Industria y Empleo"
+              className="h-[clamp(1.65rem,3.5vh,2.7rem)] w-auto"
             />
           </div>
         </div>
