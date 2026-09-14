@@ -158,7 +158,7 @@ export const temas = [
 
 export const colaboradores = [
   { src: '/brand/hiberus.png', alt: 'Hiberus' },
+  { src: '/brand/camara-oviedo.png', alt: 'Cámara de Comercio de Oviedo' },
   { src: '/brand/clustertic.png', alt: 'Clúster TIC Asturias' },
   { src: '/brand/ceisia-uniovi.png', alt: 'CEISIA · Universidad de Oviedo' },
-  { src: '/brand/camara-oviedo.png', alt: 'Cámara de Comercio de Oviedo' },
 ]
