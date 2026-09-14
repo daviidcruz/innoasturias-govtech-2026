@@ -53,29 +53,43 @@ export const programa = [
     hora: '09:00 – 09:15',
     titulo: 'Apertura institucional',
     tipo: 'institucional',
-    texto:
-      'Bienvenida oficial de Fundación NovaGob y el Principado de Asturias, que da el pistoletazo de salida a la jornada.',
+    ponentes: [
+      { nombre: 'Loredana Stan', cargo: 'Directora de la Fundación NovaGob', foto: '/ponentes/loredana-stan.jpg' },
+      { nombre: 'Ángela Medrano', cargo: 'Presentadora del evento', foto: '/ponentes/angela-medrano.jpg' },
+    ],
   },
   {
     hora: '09:15 – 10:00',
     titulo: 'Keynote estratégica',
     tipo: 'contenido',
-    texto:
-      'Ponencia de apertura sobre el estado del ecosistema GovTech y los retos actuales de la Administración pública, a cargo de una voz de referencia en transformación digital del sector público.',
+    ponentes: [
+      {
+        nombre: 'Saioa Leguinagoicoa',
+        cargo: 'Responsable de Estrategia Digital y Gobierno Digital, Diputación Foral de Bizkaia',
+        foto: '/ponentes/saioa-leguinagoicoa.jpg',
+      },
+    ],
   },
   {
     hora: '10:00 – 10:20',
     titulo: 'GovTech en el Principado de Asturias',
     tipo: 'institucional',
     texto:
-      'Sesión propia sobre el estado y la estrategia GovTech del Principado: qué se está haciendo ya y hacia dónde va la administración autonómica en transformación digital.',
+      'Estado y estrategia GovTech del Principado: qué se está haciendo ya y hacia dónde va la transformación digital autonómica.',
   },
   {
     hora: '10:20 – 11:10',
     titulo: 'InnoTalks',
     tipo: 'contenido',
-    texto:
-      'Mesa redonda donde representantes de la Administración, empresas, startups y universidad debaten en directo sobre las barreras reales y las oportunidades de colaboración público-privada.',
+    ponentes: [
+      { nombre: 'David González Fernández', cargo: 'Director de SEKUENS', foto: '/ponentes/david-gonzalez.jpg' },
+      { nombre: 'Noelia Rico', cargo: 'Directora del CEISIA, Universidad de Oviedo', foto: '/ponentes/noelia-rico.jpg' },
+      {
+        nombre: 'Alejandro González',
+        cargo: 'Coordinador Nodo Smart Cities e IoT de Asturias y Nodo Inteligencia Artificial de Asturias',
+        foto: '/ponentes/alejandro-gonzalez.jpg',
+      },
+    ],
   },
   {
     hora: '11:10 – 11:30',
@@ -84,39 +98,29 @@ export const programa = [
     texto: 'Descanso entre sesiones para tomar algo y seguir la conversación de forma informal.',
   },
   {
-    hora: '11:40 – 12:00',
-    titulo: 'InnoClass — Caso 1',
+    hora: '11:40 – 12:20',
+    titulo: 'InnoClass',
     tipo: 'contenido',
     texto:
-      'Primer caso práctico de colaboración real entre Administración y empresa, contado de primera mano: cómo se ha hecho, qué ha funcionado y qué lecciones deja para replicarlo.',
-  },
-  {
-    hora: '12:00 – 12:20',
-    titulo: 'InnoClass — Caso 2',
-    tipo: 'contenido',
-    texto:
-      'Segundo caso práctico, con una mirada distinta: compra pública de innovación, pilotos y alianzas que se traducen en resultados concretos.',
+      'Caso práctico de colaboración real entre Administración y empresa: cómo se ha hecho y qué lecciones deja para replicarlo.',
   },
   {
     hora: '12:20 – 13:00',
     titulo: 'Radar del ecosistema',
     tipo: 'dinamica',
-    texto:
-      'Mapeo visual y en vivo del ecosistema GovTech asturiano en cuatro bloques —Universidad, Startups, Empresas y Administración— que identifica capacidades, necesidades y oportunidades de conexión.',
+    ponentes: [{ nombre: 'Ángela Medrano', cargo: 'Presentadora del evento', foto: '/ponentes/angela-medrano.jpg' }],
   },
   {
     hora: '13:00 – 14:00',
     titulo: 'InnoDemos',
     tipo: 'dinamica',
-    texto:
-      'Empresas y startups muestran en formato breve sus soluciones, prototipos y casos de uso aplicables al sector público.',
+    texto: 'Empresas y startups muestran en formato breve sus soluciones y casos de uso aplicables al sector público.',
   },
   {
     hora: '14:00',
     titulo: 'Cierre y networking',
     tipo: 'logistica',
-    texto:
-      'Espacio informal para consolidar los contactos generados durante la jornada y explorar los próximos pasos de colaboración.',
+    texto: 'Espacio informal para consolidar contactos y explorar los próximos pasos de colaboración.',
   },
 ]
 
@@ -150,4 +154,11 @@ export const temas = [
   'Automatización',
   'Eficiencia administrativa',
   'Compra pública de innovación',
+]
+
+export const colaboradores = [
+  { src: '/brand/hiberus.png', alt: 'Hiberus' },
+  { src: '/brand/clustertic.png', alt: 'Clúster TIC Asturias' },
+  { src: '/brand/ceisia-uniovi.png', alt: 'CEISIA · Universidad de Oviedo' },
+  { src: '/brand/camara-oviedo.png', alt: 'Cámara de Comercio de Oviedo' },
 ]

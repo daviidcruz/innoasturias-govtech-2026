@@ -1,4 +1,4 @@
-import { evento } from '../data/content.js'
+import { evento, colaboradores } from '../data/content.js'
 
 /**
  * Portada. Ocupa una ventana exacta: la tarjeta de cristal se estira con el
@@ -85,12 +85,31 @@ export default function Hero() {
               alt="Fundación NovaGob"
               className="h-[clamp(2.15rem,4.6vh,3.5rem)] w-auto"
             />
-            <span className="h-9 w-px bg-white/25" aria-hidden="true" />
             <img
               src="/brand/asturias.png"
               alt="Principado de Asturias · Consejería de Ciencia, Industria y Empleo"
               className="h-[clamp(1.65rem,3.5vh,2.7rem)] w-auto"
             />
+          </div>
+
+          <span className="hidden h-9 w-px bg-white/25 sm:block" aria-hidden="true" />
+
+          <span className="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-white/60">
+            Colaboran
+          </span>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+            {colaboradores.map((c) => (
+              <img
+                key={c.alt}
+                src={c.src}
+                alt={c.alt}
+                className={`w-auto brightness-0 invert ${
+                  c.alt === 'Hiberus'
+                    ? 'h-[clamp(1.25rem,2.6vh,1.75rem)]'
+                    : 'h-[clamp(1.6rem,3.4vh,2.3rem)]'
+                }`}
+              />
+            ))}
           </div>
         </div>
       </div>

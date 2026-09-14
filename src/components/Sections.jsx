@@ -1,6 +1,6 @@
 import Countdown from './Countdown.jsx'
 import { useInView, useSectionIn, useClock } from '../hooks/useInView.js'
-import { objetivos, programa, cuadrantes, temas, evento } from '../data/content.js'
+import { objetivos, programa, cuadrantes, temas, evento, colaboradores } from '../data/content.js'
 
 /* ---------------------------------- piezas --------------------------------- */
 
@@ -168,6 +168,13 @@ export function Jornada() {
             Marco estratégico, contraste de realidades, capacitación práctica, ordenación del
             ecosistema, demostración aplicada y activación de oportunidades. En ese orden.
           </p>
+          {/* Todavía hay ponentes por confirmar (el propio programa lo
+              muestra: algunas sesiones no tienen nombre debajo) — que el
+              aviso esté a la vista evita que alguien lea el horario como
+              definitivo antes de que lo sea. */}
+          <span className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3.5 py-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.15em] text-white/85">
+            Programa preliminar
+          </span>
           <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[0.8125rem] text-white/75">
             {['contenido', 'dinamica', 'institucional', 'logistica'].map((k) => (
               <span key={k} className="inline-flex items-center gap-2">
@@ -217,9 +224,41 @@ export function Jornada() {
                   >
                     {p.titulo}
                   </h3>
-                  <p className="mt-2.5 max-w-[64ch] text-[0.9375rem] leading-[1.7] text-white/75 sm:text-[1rem]">
-                    {p.texto}
-                  </p>
+                  {!p.ponentes && p.texto && (
+                    <p className="mt-2.5 line-clamp-2 max-w-[64ch] text-[0.9375rem] leading-[1.5] text-white/75 sm:text-[1rem]">
+                      {p.texto}
+                    </p>
+                  )}
+                  {p.ponentes?.length > 0 && (
+                    <ul className="mt-3 flex flex-wrap gap-x-6 gap-y-3">
+                      {p.ponentes.map((pon) => (
+                        <li key={pon.nombre} className="flex items-center gap-2.5">
+                          {pon.foto ? (
+                            <img
+                              src={pon.foto}
+                              alt={pon.nombre}
+                              className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-white/20"
+                            />
+                          ) : (
+                            <span
+                              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/10 text-[0.8125rem] font-bold text-white/70 ring-1 ring-white/20"
+                              aria-hidden="true"
+                            >
+                              {pon.nombre.slice(0, 1)}
+                            </span>
+                          )}
+                          <span className="flex flex-col">
+                            <span className="text-[0.8125rem] font-bold leading-tight text-white/90">
+                              {pon.nombre}
+                            </span>
+                            {pon.cargo && (
+                              <span className="text-[0.75rem] leading-tight text-white/55">{pon.cargo}</span>
+                            )}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </div>
             </li>
@@ -341,7 +380,6 @@ export function Footer() {
                   alt="Fundación NovaGob"
                   className="h-9 w-auto sm:h-10"
                 />
-                <span className="h-9 w-px bg-white/25" aria-hidden="true" />
                 <img
                   src="/brand/asturias.png"
                   alt="Principado de Asturias · Consejería de Ciencia, Industria y Empleo"
@@ -351,7 +389,32 @@ export function Footer() {
             </div>
           </div>
 
-          <div className="mt-10 flex flex-col gap-3 border-t border-white/12 pt-6">
+          {/* Los logos que colaboran llegan a color (no blancos como los
+              de "Organiza") — el filtro brightness-0 invert los deja en
+              blanco puro para que luzcan igual, sin pastilla ni fondo
+              detrás. */}
+          <div className="mt-10 border-t border-white/12 pt-8">
+            <p className="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-white/55">
+              Colaboran
+            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-x-7 gap-y-4">
+              {colaboradores.map((c) => (
+                // brightness-0 invert: cada logo llega en su color de marca
+                // (navy, teal, rojo…) — este filtro los deja en blanco puro,
+                // igual que los de "Organiza", sin tocar el archivo original.
+                <img
+                  key={c.alt}
+                  src={c.src}
+                  alt={c.alt}
+                  className={`w-auto brightness-0 invert ${
+                    c.alt === 'Hiberus' ? 'h-6 sm:h-7' : 'h-8 sm:h-9'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-8 flex flex-col gap-3 border-t border-white/12 pt-6">
             <a
               href="https://novagob.org"
               target="_blank"
