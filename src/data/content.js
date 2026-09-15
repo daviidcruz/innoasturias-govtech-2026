@@ -101,8 +101,13 @@ export const programa = [
     hora: '11:40 – 12:20',
     titulo: 'InnoClass',
     tipo: 'contenido',
-    texto:
-      'Caso práctico de colaboración real entre Administración y empresa: cómo se ha hecho y qué lecciones deja para replicarlo.',
+    ponentes: [
+      {
+        nombre: 'Javier García-Calvo Gutiérrez',
+        cargo: 'Responsable de DXP (Experiencia Digital), Hiberus',
+        foto: '/ponentes/javier-garcia-calvo.jpg',
+      },
+    ],
   },
   {
     hora: '12:20 – 13:00',
