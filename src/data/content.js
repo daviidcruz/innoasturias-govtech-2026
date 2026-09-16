@@ -87,6 +87,11 @@ export const programa = [
     titulo: 'InnoTalks',
     tipo: 'contenido',
     ponentes: [
+      {
+        nombre: 'Judith Flórez Paredes',
+        cargo: 'Directora General de Empleo y Asuntos Laborales, Principado de Asturias',
+        foto: '/ponentes/judith-florez.jpg',
+      },
       { nombre: 'David González Fernández', cargo: 'Director de SEKUENS', foto: '/ponentes/david-gonzalez.jpg' },
       { nombre: 'Noelia Rico', cargo: 'Directora del CEISIA, Universidad de Oviedo', foto: '/ponentes/noelia-rico.jpg' },
       {
