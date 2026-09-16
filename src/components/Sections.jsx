@@ -83,7 +83,7 @@ export function Encuentro() {
       </Titular>
 
       <div className="mt-12 grid gap-4 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
-        <div data-reveal="lift" className="glass-2 rounded-panel p-8 sm:p-10 lg:p-12">
+        <div data-reveal="lift" className="glass-2 glass-2--dim rounded-panel p-8 sm:p-10 lg:p-12">
           <p className="max-w-[52ch] text-[1.125rem] leading-[1.7] text-white">
             Asturias tiene capacidades tecnológicas, conocimiento y tejido innovador. Lo que faltaba
             era una sala donde la Administración traiga sus retos y el ecosistema traiga sus
@@ -111,7 +111,7 @@ export function Encuentro() {
         <div
           data-reveal="lift"
           style={{ '--d': '110ms' }}
-          className="glass-3 rounded-panel p-8 sm:p-10"
+          className="glass-3 glass-3--dim rounded-panel p-8 sm:p-10"
         >
           <p className="text-[0.6875rem] font-bold uppercase tracking-[0.18em] text-white/55">
             Lo que se lleva cada asistente
@@ -196,7 +196,7 @@ export function Jornada() {
               data-slot={i}
               data-reveal="rise"
               style={{ '--d': `${Math.min(i, 5) * 60}ms` }}
-              className={`slot glass-3 rounded-card px-6 py-6 sm:px-8 sm:py-7 ${
+              className={`slot glass-3 glass-3--dim rounded-card px-6 py-6 sm:px-8 sm:py-7 ${
                 i === now ? 'is-now' : ''
               }`}
             >
@@ -294,7 +294,7 @@ export function Radar() {
         </p>
       </div>
 
-      <div ref={ref} className="radar glass-2 relative mt-12 overflow-hidden rounded-panel">
+      <div ref={ref} className="radar glass-2 glass-2--dim relative mt-12 overflow-hidden rounded-panel">
         {/* Anillos de madurez centrados en el punto de cruce */}
         <div
           aria-hidden="true"

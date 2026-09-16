@@ -55,6 +55,11 @@ export const programa = [
     tipo: 'institucional',
     ponentes: [
       { nombre: 'Loredana Stan', cargo: 'Directora de la Fundación NovaGob', foto: '/ponentes/loredana-stan.jpg' },
+      {
+        nombre: 'Arantxa González Montell',
+        cargo: 'Directora General de Empresa y Comercio, Principado de Asturias',
+        foto: '/ponentes/arantxa-gonzalez.jpg',
+      },
       { nombre: 'Ángela Medrano', cargo: 'Presentadora del evento', foto: '/ponentes/angela-medrano.jpg' },
     ],
   },
@@ -98,19 +103,24 @@ export const programa = [
     texto: 'Descanso entre sesiones para tomar algo y seguir la conversación de forma informal.',
   },
   {
-    hora: '11:40 – 12:20',
+    hora: '11:40 – 12:30',
     titulo: 'InnoClass',
     tipo: 'contenido',
     ponentes: [
       {
         nombre: 'Javier García-Calvo Gutiérrez',
-        cargo: 'Responsable de DXP (Experiencia Digital), Hiberus',
+        cargo: 'Global Head of DXP y Director territorial Asturias, en Hiberus',
         foto: '/ponentes/javier-garcia-calvo.jpg',
+      },
+      {
+        nombre: 'Jone Ezcurra Ibarra',
+        cargo: 'Ingeniera especialista en Diseño e Innovación en Tracasa',
+        foto: '/ponentes/jone-ezcurra.jpg',
       },
     ],
   },
   {
-    hora: '12:20 – 13:00',
+    hora: '12:30 – 13:00',
     titulo: 'Radar del ecosistema',
     tipo: 'dinamica',
     ponentes: [{ nombre: 'Ángela Medrano', cargo: 'Presentadora del evento', foto: '/ponentes/angela-medrano.jpg' }],
