@@ -25,6 +25,16 @@ function Titular({ children, className = '', ...rest }) {
   )
 }
 
+/* El "in" de LinkedIn, dibujado a mano — el sitio no trae ninguna librería
+   de iconos, y es la única marca que hace falta. */
+function LinkedInIcon({ className = '' }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.38-1.85 3.61 0 4.27 2.38 4.27 5.47zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56z" />
+    </svg>
+  )
+}
+
 /* -------------------------------- Cuenta atrás ----------------------------- */
 
 /* Fecha y hora, en un dato: son cortos y van juntos. El lugar es harina de
@@ -231,32 +241,66 @@ export function Jornada() {
                   )}
                   {p.ponentes?.length > 0 && (
                     <ul className="mt-3 flex flex-wrap gap-x-6 gap-y-3">
-                      {p.ponentes.map((pon) => (
-                        <li key={pon.nombre} className="flex items-center gap-2.5">
-                          {pon.foto ? (
-                            <img
-                              src={pon.foto}
-                              alt={pon.nombre}
-                              className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-white/20"
-                            />
-                          ) : (
-                            <span
-                              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/10 text-[0.8125rem] font-bold text-white/70 ring-1 ring-white/20"
-                              aria-hidden="true"
-                            >
-                              {pon.nombre.slice(0, 1)}
-                            </span>
-                          )}
-                          <span className="flex flex-col">
-                            <span className="text-[0.8125rem] font-bold leading-tight text-white/90">
-                              {pon.nombre}
-                            </span>
-                            {pon.cargo && (
-                              <span className="text-[0.75rem] leading-tight text-white/55">{pon.cargo}</span>
-                            )}
+                      {p.ponentes.map((pon) => {
+                        const avatar = pon.foto ? (
+                          <img
+                            src={pon.foto}
+                            alt={pon.nombre}
+                            className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-white/20"
+                          />
+                        ) : (
+                          <span
+                            className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/10 text-[0.8125rem] font-bold text-white/70 ring-1 ring-white/20"
+                            aria-hidden="true"
+                          >
+                            {pon.nombre.slice(0, 1)}
                           </span>
-                        </li>
-                      ))}
+                        )
+                        const contenido = (
+                          <>
+                            <span className="relative shrink-0">
+                              {avatar}
+                              {pon.linkedin && (
+                                <span
+                                  className="absolute -bottom-1 -right-1 grid h-4 w-4 place-items-center rounded-full bg-[#0A66C2] text-white opacity-0 ring-2 ring-[#111a30] transition-opacity duration-200 group-hover/pon:opacity-100"
+                                  aria-hidden="true"
+                                >
+                                  <LinkedInIcon className="h-2.5 w-2.5" />
+                                </span>
+                              )}
+                            </span>
+                            <span className="flex flex-col">
+                              <span
+                                className={`text-[0.8125rem] font-bold leading-tight text-white/90 ${
+                                  pon.linkedin ? 'group-hover/pon:underline' : ''
+                                }`}
+                              >
+                                {pon.nombre}
+                              </span>
+                              {pon.cargo && (
+                                <span className="text-[0.75rem] leading-tight text-white/55">{pon.cargo}</span>
+                              )}
+                            </span>
+                          </>
+                        )
+                        return (
+                          <li key={pon.nombre} className="group/pon flex items-center gap-2.5">
+                            {pon.linkedin ? (
+                              <a
+                                href={pon.linkedin}
+                                target="_blank"
+                                rel="noopener"
+                                className="flex items-center gap-2.5"
+                                aria-label={`${pon.nombre} en LinkedIn`}
+                              >
+                                {contenido}
+                              </a>
+                            ) : (
+                              contenido
+                            )}
+                          </li>
+                        )
+                      })}
                     </ul>
                   )}
                 </div>
