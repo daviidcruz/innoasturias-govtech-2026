@@ -224,8 +224,8 @@ export function Jornada() {
                   >
                     {p.titulo}
                   </h3>
-                  {!p.ponentes && p.texto && (
-                    <p className="mt-2.5 line-clamp-2 max-w-[64ch] text-[0.9375rem] leading-[1.5] text-white/75 sm:text-[1rem]">
+                  {p.texto && (
+                    <p className="mt-2.5 max-w-[64ch] text-[0.9375rem] leading-[1.5] text-white/75 sm:text-[1rem]">
                       {p.texto}
                     </p>
                   )}

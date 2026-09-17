@@ -60,6 +60,11 @@ export const programa = [
         cargo: 'Directora General de Empresa y Comercio, Principado de Asturias',
         foto: '/ponentes/arantxa-gonzalez.jpg',
       },
+      {
+        nombre: 'José Manuel Ferreira',
+        cargo: 'Vicepresidente de la Cámara de Comercio de Oviedo',
+        foto: '/ponentes/jose-manuel-ferreira.jpg',
+      },
       { nombre: 'Ángela Medrano', cargo: 'Presentadora del evento', foto: '/ponentes/angela-medrano.jpg' },
     ],
   },
@@ -67,6 +72,8 @@ export const programa = [
     hora: '09:15 – 10:00',
     titulo: 'Keynote estratégica',
     tipo: 'contenido',
+    texto:
+      'Administraciones que aprenden: cómo el enfoque GovTech conecta retos públicos con las capacidades del ecosistema.',
     ponentes: [
       {
         nombre: 'Saioa Leguinagoicoa',
@@ -79,8 +86,13 @@ export const programa = [
     hora: '10:00 – 10:20',
     titulo: 'GovTech en el Principado de Asturias',
     tipo: 'institucional',
-    texto:
-      'Estado y estrategia GovTech del Principado: qué se está haciendo ya y hacia dónde va la transformación digital autonómica.',
+    ponentes: [
+      {
+        nombre: 'Javier Fernández Rodríguez',
+        cargo: 'Director General de Estrategia Digital e Inteligencia Artificial, Gobierno del Principado de Asturias',
+        foto: '/ponentes/javier-fernandez.jpg',
+      },
+    ],
   },
   {
     hora: '10:20 – 11:10',
