@@ -74,7 +74,7 @@ export const programa = [
       },
       {
         nombre: 'Ángela Medrano',
-        cargo: 'Presentadora del evento',
+        cargo: 'Periodista. Conductora y presentadora del evento.',
         foto: '/ponentes/angela-medrano.jpg',
         linkedin: 'https://www.linkedin.com/in/%C3%A1ngelamedrano/',
       },
@@ -177,7 +177,7 @@ export const programa = [
     ponentes: [
       {
         nombre: 'Ángela Medrano',
-        cargo: 'Presentadora del evento',
+        cargo: 'Periodista. Conductora y presentadora del evento.',
         foto: '/ponentes/angela-medrano.jpg',
         linkedin: 'https://www.linkedin.com/in/%C3%A1ngelamedrano/',
       },
