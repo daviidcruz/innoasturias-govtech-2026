@@ -108,8 +108,8 @@ export const programa = [
     texto: 'Descanso entre sesiones para tomar algo y seguir la conversación de forma informal.',
   },
   {
-    hora: '11:40 – 12:30',
-    titulo: 'InnoClass',
+    hora: '11:40 – 12:00',
+    titulo: 'InnoClass — Caso 1',
     tipo: 'contenido',
     ponentes: [
       {
@@ -117,6 +117,13 @@ export const programa = [
         cargo: 'Global Head of DXP y Director territorial Asturias, en Hiberus',
         foto: '/ponentes/javier-garcia-calvo.jpg',
       },
+    ],
+  },
+  {
+    hora: '12:00 – 12:30',
+    titulo: 'InnoClass — Caso 2',
+    tipo: 'contenido',
+    ponentes: [
       {
         nombre: 'Jone Ezcurra Ibarra',
         cargo: 'Ingeniera especialista en Diseño e Innovación en Tracasa',
