@@ -108,7 +108,7 @@ export const programa = [
     texto: 'Descanso entre sesiones para tomar algo y seguir la conversación de forma informal.',
   },
   {
-    hora: '11:40 – 12:00',
+    hora: '11:40 – 12:05',
     titulo: 'InnoClass — Caso 1',
     tipo: 'contenido',
     ponentes: [
@@ -120,7 +120,7 @@ export const programa = [
     ],
   },
   {
-    hora: '12:00 – 12:30',
+    hora: '12:05 – 12:30',
     titulo: 'InnoClass — Caso 2',
     tipo: 'contenido',
     ponentes: [
