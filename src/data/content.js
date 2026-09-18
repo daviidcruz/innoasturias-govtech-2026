@@ -132,7 +132,7 @@ export const programa = [
       },
       {
         nombre: 'Alejandro González',
-        cargo: 'Coordinador Nodo Smart Cities e IoT de Asturias y Nodo Inteligencia Artificial de Asturias',
+        cargo: 'Coordinador Nodo Smart Cities e IoT de Asturias y Nodo Inteligencia Artificial de Asturias, Clúster TIC Asturias',
         foto: '/ponentes/alejandro-gonzalez.jpg',
         linkedin: 'https://www.linkedin.com/in/alejandroglezgarcia/',
       },
