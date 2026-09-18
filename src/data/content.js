@@ -188,6 +188,13 @@ export const programa = [
     titulo: 'InnoDemos',
     tipo: 'dinamica',
     texto: 'Empresas y startups muestran en formato breve sus soluciones y casos de uso aplicables al sector público.',
+    ponentes: [
+      {
+        nombre: 'María Martínez de Carnero',
+        cargo: 'CGO & Co-founder, eAgora',
+        foto: '/ponentes/maria-martinez-carnero.jpg',
+      },
+    ],
   },
   {
     hora: '14:00',
