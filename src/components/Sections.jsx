@@ -451,7 +451,11 @@ export function Footer() {
                   src={c.src}
                   alt={c.alt}
                   className={`w-auto brightness-0 invert ${
-                    c.alt === 'Hiberus' ? 'h-6 sm:h-7' : 'h-8 sm:h-9'
+                    c.alt === 'Hiberus'
+                      ? 'h-6 sm:h-7'
+                      : c.alt === 'eAgora'
+                        ? 'h-7 sm:h-8'
+                        : 'h-8 sm:h-9'
                   }`}
                 />
               ))}

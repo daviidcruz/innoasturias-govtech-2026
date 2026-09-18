@@ -106,7 +106,9 @@ export default function Hero() {
                 className={`w-auto brightness-0 invert ${
                   c.alt === 'Hiberus'
                     ? 'h-[clamp(1.25rem,2.6vh,1.75rem)]'
-                    : 'h-[clamp(1.6rem,3.4vh,2.3rem)]'
+                    : c.alt === 'eAgora'
+                      ? 'h-[clamp(1.4rem,3vh,2.05rem)]'
+                      : 'h-[clamp(1.6rem,3.4vh,2.3rem)]'
                 }`}
               />
             ))}
