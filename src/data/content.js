@@ -98,7 +98,7 @@ export const programa = [
   {
     hora: '10:00 – 10:20',
     titulo: 'GovTech en el Principado de Asturias',
-    tipo: 'institucional',
+    tipo: 'contenido',
     ponentes: [
       {
         nombre: 'Javier Fernández Rodríguez',
@@ -184,15 +184,27 @@ export const programa = [
     ],
   },
   {
-    hora: '13:00 – 14:00',
-    titulo: 'InnoDemos',
+    hora: '13:00 – 13:30',
+    titulo: 'InnoDemos — Caso 1',
     tipo: 'dinamica',
-    texto: 'Empresas y startups muestran en formato breve sus soluciones y casos de uso aplicables al sector público.',
     ponentes: [
       {
         nombre: 'María Martínez de Carnero',
         cargo: 'CGO & Co-founder, eAgora',
         foto: '/ponentes/maria-martinez-carnero.jpg',
+      },
+    ],
+  },
+  {
+    hora: '13:30 – 14:00',
+    titulo: 'InnoDemos — Caso 2',
+    tipo: 'dinamica',
+    ponentes: [
+      {
+        nombre: 'David Rosa Mañez',
+        cargo: 'Subdirector en València Innovation Capital',
+        foto: '/ponentes/david-rosa.jpg',
+        linkedin: 'https://www.linkedin.com/in/david-rosa-mañez-94748420/',
       },
     ],
   },
