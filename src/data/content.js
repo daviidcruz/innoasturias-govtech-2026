@@ -164,7 +164,7 @@ export const programa = [
     ponentes: [
       {
         nombre: 'Jone Ezcurra Ibarra',
-        cargo: 'Ingeniera especialista en Diseño e Innovación en Gobierno de Navarra',
+        cargo: 'Ingeniera especialista en Diseño e Innovación en Tracasa Instrumental',
         foto: '/ponentes/jone-ezcurra.jpg',
         linkedin: 'https://www.linkedin.com/in/jone-ezcurra-ibarra-55b564a4/',
       },
@@ -217,6 +217,7 @@ export const programa = [
         nombre: 'Vicente Rodríguez Montequín',
         cargo: 'Full Professor, Área de Proyectos de Ingeniería, Universidad de Oviedo',
         foto: '/ponentes/vicente-rodriguez-montequin.jpg',
+        linkedin: 'https://www.linkedin.com/in/montequi/',
       },
     ],
   },
