@@ -209,7 +209,19 @@ export const programa = [
     ],
   },
   {
-    hora: '14:00',
+    hora: '14:00 – 14:15',
+    titulo: 'InnoIA',
+    tipo: 'contenido',
+    ponentes: [
+      {
+        nombre: 'Vicente Rodríguez Montequín',
+        cargo: 'Full Professor, Área de Proyectos de Ingeniería, Universidad de Oviedo',
+        foto: '/ponentes/vicente-rodriguez-montequin.jpg',
+      },
+    ],
+  },
+  {
+    hora: '14:30',
     titulo: 'Cierre y networking',
     tipo: 'logistica',
     texto: 'Espacio informal para consolidar contactos y explorar los próximos pasos de colaboración.',
