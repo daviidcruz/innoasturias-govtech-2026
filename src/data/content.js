@@ -136,6 +136,12 @@ export const programa = [
         foto: '/ponentes/alejandro-gonzalez.jpg',
         linkedin: 'https://www.linkedin.com/in/alejandroglezgarcia/',
       },
+      {
+        nombre: 'David Rosa Mañez',
+        cargo: 'CEO de MTT',
+        foto: '/ponentes/david-rosa.jpg',
+        linkedin: 'https://www.linkedin.com/in/david-rosa-mañez-94748420/',
+      },
     ],
   },
   {
@@ -199,14 +205,6 @@ export const programa = [
     hora: '13:30 – 14:00',
     titulo: 'InnoDemos — Caso 2',
     tipo: 'dinamica',
-    ponentes: [
-      {
-        nombre: 'David Rosa Mañez',
-        cargo: 'Subdirector en València Innovation Capital',
-        foto: '/ponentes/david-rosa.jpg',
-        linkedin: 'https://www.linkedin.com/in/david-rosa-mañez-94748420/',
-      },
-    ],
   },
   {
     hora: '14:00 – 14:15',
