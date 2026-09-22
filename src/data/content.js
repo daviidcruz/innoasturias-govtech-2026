@@ -219,6 +219,12 @@ export const programa = [
         foto: '/ponentes/vicente-rodriguez-montequin.jpg',
         linkedin: 'https://www.linkedin.com/in/montequi/',
       },
+      {
+        nombre: 'Antonio Saldaña Fernández del Viso',
+        cargo: 'Investigador en la Universidad de Oviedo',
+        foto: '/ponentes/antonio-saldana.jpg',
+        linkedin: 'https://www.linkedin.com/in/antoniosalviso/',
+      },
     ],
   },
   {
