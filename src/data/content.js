@@ -138,7 +138,7 @@ export const programa = [
       },
       {
         nombre: 'David Rosa Mañez',
-        cargo: 'CEO de MTT',
+        cargo: 'CEO de More Than Theory',
         foto: '/ponentes/david-rosa.jpg',
         linkedin: 'https://www.linkedin.com/in/david-rosa-mañez-94748420/',
       },
