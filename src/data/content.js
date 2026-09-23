@@ -211,7 +211,21 @@ export const programa = [
     ],
   },
   {
-    hora: '14:00',
+    hora: '14:00 – 14:15',
+    titulo: 'InnoDemos',
+    tipo: 'dinamica',
+    texto:
+      'GreenBid AI, piloto para Ihobe: IA para vigilar el cumplimiento ambiental en la contratación pública vasca (artículo 84 de la Ley 10/2021), desde el análisis de pliegos hasta métricas de seguimiento continuo.',
+    ponentes: [
+      {
+        nombre: 'Miguel López',
+        cargo: 'CEO de Cadabit',
+        foto: '/ponentes/miguel-lopez.jpg',
+      },
+    ],
+  },
+  {
+    hora: '14:15',
     titulo: 'Cierre y networking',
     tipo: 'logistica',
     texto: 'Espacio informal para consolidar contactos y explorar los próximos pasos de colaboración.',
