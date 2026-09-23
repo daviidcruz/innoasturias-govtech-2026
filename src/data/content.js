@@ -99,6 +99,8 @@ export const programa = [
     hora: '10:00 – 10:30',
     titulo: 'GovTech en el Principado de Asturias',
     tipo: 'contenido',
+    texto:
+      'Cómo avanza la estrategia digital y de inteligencia artificial del Principado, y qué papel juega el ecosistema GovTech en ese camino.',
     ponentes: [
       {
         nombre: 'Javier Fernández Rodríguez',
