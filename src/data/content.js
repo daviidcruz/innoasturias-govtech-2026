@@ -61,12 +61,6 @@ export const programa = [
         linkedin: 'https://www.linkedin.com/in/loredana-stan-1b651b43/',
       },
       {
-        nombre: 'Arantxa González Montell',
-        cargo: 'Directora General de Empresa y Comercio, Principado de Asturias',
-        foto: '/ponentes/arantxa-gonzalez.jpg',
-        linkedin: 'https://www.linkedin.com/in/arantxa-gonz%C3%A1lez-montell-742854222/',
-      },
-      {
         nombre: 'José Manuel Ferreira',
         cargo: 'Vicepresidente de la Cámara de Comercio de Oviedo',
         foto: '/ponentes/jose-manuel-ferreira.jpg',
