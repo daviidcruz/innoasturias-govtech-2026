@@ -215,7 +215,7 @@ export const programa = [
     titulo: 'InnoDemo',
     tipo: 'dinamica',
     texto:
-      'GreenBid AI, piloto para Ihobe: IA para vigilar el cumplimiento ambiental en la contratación pública vasca.',
+      'GreenBid AI: una demo en vivo de cómo la inteligencia artificial puede vigilar el cumplimiento ambiental en los contratos públicos.',
     ponentes: [
       {
         nombre: 'Miguel López',
