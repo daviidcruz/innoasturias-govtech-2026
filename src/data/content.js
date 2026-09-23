@@ -152,7 +152,7 @@ export const programa = [
   },
   {
     hora: '11:30 – 12:00',
-    titulo: 'InnoClass — Caso 1',
+    titulo: 'InnoClass 1.0',
     tipo: 'contenido',
     ponentes: [
       {
@@ -165,7 +165,7 @@ export const programa = [
   },
   {
     hora: '12:00 – 12:30',
-    titulo: 'InnoClass — Caso 2',
+    titulo: 'InnoClass 2.0',
     tipo: 'contenido',
     ponentes: [
       {
