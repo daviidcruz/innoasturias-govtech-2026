@@ -109,7 +109,7 @@ export const programa = [
     ],
   },
   {
-    hora: '10:20 – 11:10',
+    hora: '10:20 – 11:20',
     titulo: 'InnoTalks',
     tipo: 'contenido',
     ponentes: [
@@ -145,13 +145,13 @@ export const programa = [
     ],
   },
   {
-    hora: '11:10 – 11:30',
+    hora: '11:20 – 11:40',
     titulo: 'Pausa para el café y networking',
     tipo: 'logistica',
     texto: 'Descanso entre sesiones para tomar algo y seguir la conversación de forma informal.',
   },
   {
-    hora: '11:30 – 12:00',
+    hora: '11:40 – 12:10',
     titulo: 'InnoClass 1.0',
     tipo: 'contenido',
     ponentes: [
@@ -164,7 +164,7 @@ export const programa = [
     ],
   },
   {
-    hora: '12:00 – 12:30',
+    hora: '12:10 – 12:40',
     titulo: 'InnoClass 2.0',
     tipo: 'contenido',
     ponentes: [
@@ -177,7 +177,7 @@ export const programa = [
     ],
   },
   {
-    hora: '12:30 – 13:00',
+    hora: '12:40 – 13:10',
     titulo: 'Radar del ecosistema',
     tipo: 'dinamica',
     ponentes: [
@@ -190,7 +190,7 @@ export const programa = [
     ],
   },
   {
-    hora: '13:00 – 13:30',
+    hora: '13:10 – 13:40',
     titulo: 'InnoIA',
     tipo: 'contenido',
     ponentes: [
@@ -209,7 +209,7 @@ export const programa = [
     ],
   },
   {
-    hora: '13:30',
+    hora: '13:40',
     titulo: 'Cierre y networking',
     tipo: 'logistica',
     texto: 'Espacio informal para consolidar contactos y explorar los próximos pasos de colaboración.',
