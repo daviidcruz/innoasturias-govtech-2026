@@ -151,7 +151,7 @@ export const programa = [
     texto: 'Descanso entre sesiones para tomar algo y seguir la conversación de forma informal.',
   },
   {
-    hora: '11:40 – 12:05',
+    hora: '11:30 – 12:00',
     titulo: 'InnoClass — Caso 1',
     tipo: 'contenido',
     ponentes: [
@@ -164,7 +164,7 @@ export const programa = [
     ],
   },
   {
-    hora: '12:05 – 12:30',
+    hora: '12:00 – 12:30',
     titulo: 'InnoClass — Caso 2',
     tipo: 'contenido',
     ponentes: [
@@ -191,23 +191,6 @@ export const programa = [
   },
   {
     hora: '13:00 – 13:30',
-    titulo: 'InnoDemos — Caso 1',
-    tipo: 'dinamica',
-    ponentes: [
-      {
-        nombre: 'María Martínez de Carnero',
-        cargo: 'CGO & Co-founder, eAgora',
-        foto: '/ponentes/maria-martinez-carnero.jpg',
-      },
-    ],
-  },
-  {
-    hora: '13:30 – 14:00',
-    titulo: 'InnoDemos — Caso 2',
-    tipo: 'dinamica',
-  },
-  {
-    hora: '14:00 – 14:15',
     titulo: 'InnoIA',
     tipo: 'contenido',
     ponentes: [
@@ -226,7 +209,7 @@ export const programa = [
     ],
   },
   {
-    hora: '14:30',
+    hora: '13:30',
     titulo: 'Cierre y networking',
     tipo: 'logistica',
     texto: 'Espacio informal para consolidar contactos y explorar los próximos pasos de colaboración.',
@@ -268,7 +251,6 @@ export const temas = [
 export const colaboradores = [
   { src: '/brand/camara-oviedo.png', alt: 'Cámara de Comercio de Oviedo' },
   { src: '/brand/hiberus.png', alt: 'Hiberus' },
-  { src: '/brand/eagora.png', alt: 'eAgora' },
   { src: '/brand/clustertic.png', alt: 'Clúster TIC Asturias' },
   { src: '/brand/ceisia-uniovi.png', alt: 'CEISIA · Universidad de Oviedo' },
 ]
