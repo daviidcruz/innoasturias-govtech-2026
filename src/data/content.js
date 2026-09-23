@@ -96,7 +96,7 @@ export const programa = [
     ],
   },
   {
-    hora: '10:00 – 10:20',
+    hora: '10:00 – 10:30',
     titulo: 'GovTech en el Principado de Asturias',
     tipo: 'contenido',
     ponentes: [
@@ -109,7 +109,7 @@ export const programa = [
     ],
   },
   {
-    hora: '10:20 – 11:20',
+    hora: '10:30 – 11:30',
     titulo: 'InnoTalks',
     tipo: 'contenido',
     ponentes: [
@@ -145,13 +145,13 @@ export const programa = [
     ],
   },
   {
-    hora: '11:20 – 11:40',
+    hora: '11:30 – 12:00',
     titulo: 'Pausa para el café y networking',
     tipo: 'logistica',
     texto: 'Descanso entre sesiones para tomar algo y seguir la conversación de forma informal.',
   },
   {
-    hora: '11:40 – 12:10',
+    hora: '12:00 – 12:35',
     titulo: 'InnoClass 1.0',
     tipo: 'contenido',
     ponentes: [
@@ -164,9 +164,11 @@ export const programa = [
     ],
   },
   {
-    hora: '12:10 – 12:40',
+    hora: '12:35 – 13:10',
     titulo: 'InnoClass 2.0',
     tipo: 'contenido',
+    texto:
+      'TwIN, Gemelos Digitales de Navarra: de los retos públicos a 8 pilotos reales en calidad del aire, energía, urbanismo y movilidad.',
     ponentes: [
       {
         nombre: 'Jone Ezcurra Ibarra',
@@ -177,7 +179,7 @@ export const programa = [
     ],
   },
   {
-    hora: '12:40 – 13:10',
+    hora: '13:10 – 13:40',
     titulo: 'Radar del ecosistema',
     tipo: 'dinamica',
     ponentes: [
@@ -190,7 +192,7 @@ export const programa = [
     ],
   },
   {
-    hora: '13:10 – 13:40',
+    hora: '13:40 – 14:15',
     titulo: 'InnoIA',
     tipo: 'contenido',
     ponentes: [
@@ -209,7 +211,7 @@ export const programa = [
     ],
   },
   {
-    hora: '13:40',
+    hora: '14:15',
     titulo: 'Cierre y networking',
     tipo: 'logistica',
     texto: 'Espacio informal para consolidar contactos y explorar los próximos pasos de colaboración.',
