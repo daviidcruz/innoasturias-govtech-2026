@@ -111,7 +111,8 @@ export const programa = [
     ponentes: [
       {
         nombre: 'Guiomar Álvarez Reyes',
-        cargo: 'Moderadora de la mesa InnoTalks. Dirección de equipos, cultura organizacional y RRHH',
+        rol: 'Moderadora',
+        cargo: 'Adjunta a Dirección General. Directora del Área de Formación y Personas',
         foto: '/ponentes/guiomar-alvarez.jpg',
         linkedin: 'https://www.linkedin.com/in/guiomarareyes/',
       },

@@ -270,12 +270,19 @@ export function Jornada() {
                               )}
                             </span>
                             <span className="flex flex-col">
-                              <span
-                                className={`text-[0.8125rem] font-bold leading-tight text-white/90 ${
-                                  pon.linkedin ? 'group-hover/pon:underline' : ''
-                                }`}
-                              >
-                                {pon.nombre}
+                              <span className="flex items-center gap-1.5">
+                                <span
+                                  className={`text-[0.8125rem] font-bold leading-tight text-white/90 ${
+                                    pon.linkedin ? 'group-hover/pon:underline' : ''
+                                  }`}
+                                >
+                                  {pon.nombre}
+                                </span>
+                                {pon.rol && (
+                                  <span className="rounded-full bg-mint/95 px-2 py-0.5 text-[0.5625rem] font-extrabold uppercase leading-none tracking-[0.08em] text-ink">
+                                    {pon.rol}
+                                  </span>
+                                )}
                               </span>
                               {pon.cargo && (
                                 <span className="text-[0.75rem] leading-tight text-white/55">{pon.cargo}</span>
