@@ -110,6 +110,12 @@ export const programa = [
     tipo: 'contenido',
     ponentes: [
       {
+        nombre: 'Guiomar Álvarez Reyes',
+        cargo: 'Moderadora de la mesa InnoTalks. Dirección de equipos, cultura organizacional y RRHH',
+        foto: '/ponentes/guiomar-alvarez.jpg',
+        linkedin: 'https://www.linkedin.com/in/guiomarareyes/',
+      },
+      {
         nombre: 'Judith Flórez Paredes',
         cargo: 'Directora General de Empleo y Asuntos Laborales, Principado de Asturias',
         foto: '/ponentes/judith-florez.jpg',
