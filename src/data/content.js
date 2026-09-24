@@ -150,6 +150,8 @@ export const programa = [
     hora: '12:00 – 12:30',
     titulo: 'InnoClass 1.0',
     tipo: 'contenido',
+    texto:
+      'Personalización orientada a valor real, no a marketing: personalizar la experiencia digital en los servicios públicos no es marketing, es aportar valor para el ciudadano.',
     ponentes: [
       {
         nombre: 'Javier García-Calvo Gutiérrez',
@@ -191,6 +193,8 @@ export const programa = [
     hora: '13:30 – 14:00',
     titulo: 'InnoIA',
     tipo: 'contenido',
+    texto:
+      'SmartBidRigging: una demostración de cómo la inteligencia artificial puede detectar prácticas anticompetitivas en la contratación pública.',
     ponentes: [
       {
         nombre: 'Vicente Rodríguez Montequín',
