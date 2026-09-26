@@ -11,9 +11,11 @@
 // genuino, no se fuerza nada: la respuesta se queda suelta.
 //
 // Requiere el secret GROQ_API_KEY configurado en el proyecto (Project
-// Settings → Edge Functions → Secrets). SUPABASE_URL y
-// SUPABASE_SERVICE_ROLE_KEY los inyecta el propio runtime de Supabase, no
-// hace falta configurarlos.
+// Settings → Edge Functions → Secrets) — y, opcionalmente, GROQ_API_KEY_2,
+// GROQ_API_KEY_3... como cuentas de respaldo (ver `obtenerClaves`, más
+// abajo) para cuando la primera se quede sin cupo de tokens en plena
+// avalancha de envíos. SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY los
+// inyecta el propio runtime de Supabase, no hace falta configurarlos.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
@@ -23,6 +25,25 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_URL')!,
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
 )
+
+/** Todas las claves de Groq configuradas, en orden: GROQ_API_KEY primero,
+ *  luego GROQ_API_KEY_2, GROQ_API_KEY_3... hasta la primera que no exista.
+ *  Con una sola clave gratuita (8000 tokens/minuto) una avalancha de
+ *  envíos casi simultáneos agota el cupo enseguida — probado en directo:
+ *  con 29 respuestas en 2 minutos ya saltaban errores 429. Cada cuenta
+ *  gratuita adicional multiplica ese cupo sin coste. */
+function obtenerClaves(): string[] {
+  const claves: string[] = []
+  const primera = Deno.env.get('GROQ_API_KEY')
+  if (primera) claves.push(primera)
+  for (let i = 2; i <= 9; i++) {
+    const extra = Deno.env.get(`GROQ_API_KEY_${i}`)
+    if (extra) claves.push(extra)
+  }
+  return claves
+}
+
+const esperar = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 /**
  * Una sola llamada al modelo por respuesta nueva, venga de donde venga —
@@ -35,8 +56,8 @@ const supabase = createClient(
  * reto o de solución según `centralEsReto`, y el prompt se redacta acorde.
  */
 async function preguntarAlModelo(central: any, candidatos: any[], centralEsReto: boolean) {
-  const groqKey = Deno.env.get('GROQ_API_KEY')
-  if (!groqKey) {
+  const claves = obtenerClaves()
+  if (claves.length === 0) {
     console.error('radar-match: falta el secret GROQ_API_KEY')
     return null
   }
@@ -71,22 +92,49 @@ Si UNA de las candidatas encaja según ese criterio, responde solo con este JSON
 Si ninguna encaja ni siquiera de forma indirecta y coherente, responde exactamente:
 {"id": null, "explicacion": null}`
 
-  const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${groqKey}`,
-    },
-    body: JSON.stringify({
-      model: GROQ_MODEL,
-      messages: [{ role: 'user', content: prompt }],
-      response_format: { type: 'json_object' },
-      temperature: 0.2,
-    }),
+  const cuerpo = JSON.stringify({
+    model: GROQ_MODEL,
+    messages: [{ role: 'user', content: prompt }],
+    response_format: { type: 'json_object' },
+    temperature: 0.2,
   })
 
-  if (!resp.ok) {
-    console.error('radar-match: Groq respondió', resp.status, await resp.text())
+  const llamarConClave = (clave: string) =>
+    fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${clave}` },
+      body: cuerpo,
+    })
+
+  // Primera vuelta: una clave tras otra, la primera que no dé 429 (límite
+  // de tokens superado) se queda con la respuesta. Un 429 de la última
+  // clave no descarta el intento entero — antes de rendirse, se espera un
+  // momento (Groq dice cuánto en su propio mensaje de error) y se repite
+  // la ronda completa una vez más; para entonces esa clave puede haber
+  // liberado cupo.
+  let resp: Response | null = null
+  for (let vuelta = 0; vuelta < 2 && !resp; vuelta++) {
+    let ultimoLimitado: Response | null = null
+    for (const clave of claves) {
+      const intento = await llamarConClave(clave)
+      if (intento.status !== 429) {
+        resp = intento
+        break
+      }
+      ultimoLimitado = intento
+    }
+    if (!resp && ultimoLimitado && vuelta === 0) {
+      const cuerpoError = await ultimoLimitado.clone().text()
+      const espera = Number(cuerpoError.match(/try again in ([\d.]+)s/)?.[1] ?? '4')
+      console.error('radar-match: todas las claves al límite, reintentando en', espera, 's')
+      await esperar(Math.min(espera, 15) * 1000)
+    } else if (!resp) {
+      resp = ultimoLimitado
+    }
+  }
+
+  if (!resp || !resp.ok) {
+    console.error('radar-match: Groq respondió', resp?.status, await resp?.text())
     return null
   }
 
