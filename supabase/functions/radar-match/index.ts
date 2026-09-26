@@ -35,7 +35,7 @@ async function preguntarAlModelo(reto: any, candidatas: any[]) {
     .map((c, i) => `${i + 1}. id="${c.id}" — "${c.necesidad_oferta}"`)
     .join('\n')
 
-  const prompt = `Eres quien decide, en el Radar del ecosistema GovTech, si una solución propuesta por una empresa, startup o universidad podría ayudar de verdad a resolver el reto que ha planteado una Administración.
+  const prompt = `Eres quien decide, en el Radar del ecosistema GovTech, si una solución propuesta por alguien podría ayudar de verdad a resolver el reto que ha planteado otra persona (puede ser una Administración, una empresa, una startup o una universidad — cualquiera puede traer un reto o una solución, no va ligado a quién es).
 
 No exijas que la solución mencione el reto casi palabra por palabra — acepta también una relación indirecta o parcial, siempre que tenga sentido lógico y sea plausible en la práctica: piensa en lo que esa capacidad permite hacer, no solo en el texto literal. Ejemplos de este criterio, ni muy laxo ni muy estricto:
 - Reto "anonimizar documentos" + solución "protección de datos" → SÍ encaja: anonimizar es una técnica dentro de proteger datos, es coherente que quien ofrece protección de datos pueda anonimizar documentos.
@@ -44,7 +44,7 @@ No exijas que la solución mencione el reto casi palabra por palabra — acepta 
 
 En resumen: acepta la relación si, pensando un momento en qué permite hacer esa solución, un profesional razonable diría "sí, esto puede servir para eso" — aunque sea de forma parcial o indirecta. Recházala solo si la capacidad de fondo es realmente distinta, no solo porque el texto no coincida palabra por palabra.
 
-Reto planteado por la Administración:
+Reto planteado:
 "${reto.necesidad_oferta}"
 
 Soluciones candidatas (son todas las que todavía no tienen pareja — la categoría o área que marcó cada una en el formulario es solo una etiqueta orientativa, ignórala si el contenido dice otra cosa: lo que importa es el objetivo real de cada una, no la casilla que marcaron):
@@ -91,7 +91,7 @@ Si ninguna encaja ni siquiera de forma indirecta y coherente, responde exactamen
 Deno.serve(async (req) => {
   try {
     const { record } = await req.json()
-    if (!record?.id || !record?.perfil) {
+    if (!record?.id || !record?.tipo) {
       return new Response('sin registro', { status: 400 })
     }
 
@@ -105,13 +105,16 @@ Deno.serve(async (req) => {
       .maybeSingle()
     if (yaExiste) return new Response('ya tenía match', { status: 200 })
 
-    const esReto = record.perfil === 'administracion'
+    // Quién trae el reto y quién la solución ya no depende del perfil (una
+    // empresa también puede tener un reto) — depende de lo que la propia
+    // persona eligió en el formulario.
+    const esReto = record.tipo === 'reto'
 
     const { data: candidatasBrutas, error } = await supabase
       .from('radar_respuestas')
       .select('id, necesidad_oferta, areas')
       .neq('id', record.id)
-      [esReto ? 'neq' : 'eq']('perfil', 'administracion')
+      .eq('tipo', esReto ? 'solucion' : 'reto')
 
     if (error) {
       console.error('radar-match: error leyendo candidatas', error)

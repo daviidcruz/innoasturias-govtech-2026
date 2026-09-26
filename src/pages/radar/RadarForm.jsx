@@ -3,10 +3,18 @@ import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import Backdrop from '../../components/Backdrop.jsx'
 import { supabase } from '../../lib/supabase.js'
-import { PERFILES, ORDEN_PERFILES, AREAS, ORDEN_AREAS, preguntaReto, ayudaReto } from '../../data/radar.js'
+import {
+  PERFILES,
+  ORDEN_PERFILES,
+  TIPOS,
+  AREAS,
+  ORDEN_AREAS,
+  preguntaDetalle,
+  ayudaDetalle,
+} from '../../data/radar.js'
 
 const LIMITE_TEXTO = 120
-const TOTAL_PASOS = 4
+const TOTAL_PASOS = 5
 
 const easeSalida = [0.16, 1, 0.3, 1]
 const variantesPaso = {
@@ -44,15 +52,17 @@ function BotonAtras({ onClick }) {
 
 /**
  * /radar/participar — el formulario que la gente rellena desde el móvil, escaneando el
- * QR en la sala. Cuatro pasos, sin login: perfil → organización (opcional)
- * → la pregunta según el perfil → área. Al enviar, un único INSERT a
- * Supabase; la política RLS de la tabla no permite ni editar ni borrar
- * después, así que no hace falta pantalla de "revisar antes de enviar".
+ * QR en la sala. Cinco pasos, sin login: perfil → busca o tiene solución →
+ * organización (opcional) → la pregunta según ese tipo → área. Al enviar,
+ * un único INSERT a Supabase; la política RLS de la tabla no permite ni
+ * editar ni borrar después, así que no hace falta pantalla de "revisar
+ * antes de enviar".
  */
 export default function RadarForm() {
   const [paso, setPaso] = useState(1)
   const [dir, setDir] = useState(1)
   const [perfil, setPerfil] = useState(null)
+  const [tipo, setTipo] = useState(null)
   const [organizacion, setOrganizacion] = useState('')
   const [ocultarNombre, setOcultarNombre] = useState(false)
   const [necesidadOferta, setNecesidadOferta] = useState('')
@@ -71,6 +81,11 @@ export default function RadarForm() {
     ir(2)
   }
 
+  const elegirTipo = (t) => {
+    setTipo(t)
+    ir(3)
+  }
+
   const alternarArea = (a) => {
     setAreas((prev) => (prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]))
   }
@@ -80,6 +95,7 @@ export default function RadarForm() {
     setError(null)
     const { error: err } = await supabase.from('radar_respuestas').insert({
       perfil,
+      tipo,
       organizacion: organizacion.trim() || null,
       visible: Boolean(organizacion.trim()) && !ocultarNombre,
       necesidad_oferta: necesidadOferta.trim(),
@@ -175,6 +191,28 @@ export default function RadarForm() {
                   <div>
                     <BotonAtras onClick={() => ir(1)} />
                     <h1 className="text-[1.375rem] font-extrabold leading-tight text-white">
+                      ¿Qué traes hoy?
+                    </h1>
+                    <div className="mt-6 grid gap-3">
+                      {Object.entries(TIPOS).map(([t, info]) => (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => elegirTipo(t)}
+                          className="press glass-3 rounded-card px-5 py-4 text-left transition-colors hover:border-white/30 hover:bg-white/[0.09]"
+                        >
+                          <span className="block text-[1rem] font-semibold text-white">{info.label}</span>
+                          <span className="mt-1 block text-[0.8125rem] text-white/60">{info.detalle}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {paso === 3 && (
+                  <div>
+                    <BotonAtras onClick={() => ir(2)} />
+                    <h1 className="text-[1.375rem] font-extrabold leading-tight text-white">
                       Tu organización
                     </h1>
                     <label htmlFor="organizacion" className="mt-3 block text-[0.875rem] text-white/75">
@@ -209,7 +247,7 @@ export default function RadarForm() {
 
                     <button
                       type="button"
-                      onClick={() => ir(3)}
+                      onClick={() => ir(4)}
                       className="press mt-7 w-full rounded-full bg-white px-6 py-3.5 text-[0.95rem] font-bold text-navy hover:bg-blush"
                     >
                       Siguiente
@@ -217,13 +255,13 @@ export default function RadarForm() {
                   </div>
                 )}
 
-                {paso === 3 && (
+                {paso === 4 && (
                   <div>
-                    <BotonAtras onClick={() => ir(2)} />
+                    <BotonAtras onClick={() => ir(3)} />
                     <h1 className="text-[1.375rem] font-extrabold leading-tight text-white">
-                      {preguntaReto(perfil)}
+                      {preguntaDetalle(tipo)}
                     </h1>
-                    <p className="mt-2 text-[0.8125rem] text-white/55">{ayudaReto(perfil)}</p>
+                    <p className="mt-2 text-[0.8125rem] text-white/55">{ayudaDetalle(tipo)}</p>
                     <textarea
                       value={necesidadOferta}
                       onChange={(e) => setNecesidadOferta(e.target.value.slice(0, LIMITE_TEXTO))}
@@ -238,7 +276,7 @@ export default function RadarForm() {
                     <button
                       type="button"
                       disabled={!necesidadOferta.trim()}
-                      onClick={() => ir(4)}
+                      onClick={() => ir(5)}
                       className="press mt-5 w-full rounded-full bg-white px-6 py-3.5 text-[0.95rem] font-bold text-navy transition-opacity hover:bg-blush disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white"
                     >
                       Siguiente
@@ -246,9 +284,9 @@ export default function RadarForm() {
                   </div>
                 )}
 
-                {paso === 4 && (
+                {paso === 5 && (
                   <div>
-                    <BotonAtras onClick={() => ir(3)} />
+                    <BotonAtras onClick={() => ir(4)} />
                     <h1 className="text-[1.375rem] font-extrabold leading-tight text-white">
                       ¿En qué áreas encaja esto?
                     </h1>

@@ -54,17 +54,25 @@ export const AREAS = {
 
 export const ORDEN_AREAS = Object.keys(AREAS)
 
-export function preguntaReto(perfil) {
-  return perfil === 'administracion'
+// Quién trae el reto y quién trae la solución ya no depende del perfil —
+// una empresa puede tener un problema igual que una Administración puede
+// tenerlo, así que se pregunta aparte, en su propio paso del formulario.
+export const TIPOS = {
+  reto: { label: 'Busco una solución', detalle: 'Tengo un reto o problema que resolver' },
+  solucion: { label: 'Tengo una solución', detalle: 'Puedo ayudar a resolver un reto' },
+}
+
+export function preguntaDetalle(tipo) {
+  return tipo === 'reto'
     ? '¿Cuál es tu reto principal ahora mismo?'
-    : '¿En qué puedes ayudar a la Administración?'
+    : '¿Qué solución puedes ofrecer?'
 }
 
 /** Para quien se queda en blanco delante del textarea — un empujón
  *  concreto, no un ejemplo de relleno que la gente acabe copiando tal
  *  cual. */
-export function ayudaReto(perfil) {
-  return perfil === 'administracion'
+export function ayudaDetalle(tipo) {
+  return tipo === 'reto'
     ? 'Puede ser algo muy concreto (un trámite que se atasca, un dato que no tenéis) o algo más amplio — lo que os quite el sueño ahora mismo.'
     : 'Cuéntanos a qué os dedicáis o cuál es vuestro punto fuerte — no hace falta que sea muy técnico, con que se entienda vale.'
 }
@@ -83,10 +91,11 @@ export function areasDeFila(fila) {
   return []
 }
 
-/** En el Radar solo hay dos lados: la Administración trae el reto, todo lo
- *  demás (empresa, startup, universidad) trae una solución. Una sola
+/** En el Radar solo hay dos lados: quien busca una solución (reto) y quien
+ *  la ofrece — ya no va ligado al perfil (una empresa también puede traer
+ *  un reto), es lo que la propia persona eligió en el formulario. Una sola
  *  función para decidirlo, así el badge de la tarjeta y cualquier otro
  *  sitio que necesite distinguirlos leen siempre el mismo criterio. */
 export function esReto(fila) {
-  return fila.perfil === 'administracion'
+  return fila.tipo === 'reto'
 }
