@@ -1,0 +1,166 @@
+// radar-match — Edge Function del Radar del ecosistema.
+//
+// La dispara un trigger de base de datos (ver la migración
+// 20260926_radar_matches.sql) en cada INSERT de radar_respuestas. Antes el
+// match se calculaba en el navegador, solo por área compartida (checkbox
+// del formulario) — así dos respuestas sin relación real quedaban unidas
+// por llevar la misma etiqueta. Aquí, en cambio, se le pasa el texto real
+// del reto y de la(s) solución(es) candidata(s) a un modelo de lenguaje
+// (Groq) y solo se guarda un match si el modelo dice que de verdad
+// resuelve el problema — con una frase explicando por qué. Sin match
+// genuino, no se fuerza nada: la respuesta se queda suelta.
+//
+// Requiere el secret GROQ_API_KEY configurado en el proyecto (Project
+// Settings → Edge Functions → Secrets). SUPABASE_URL y
+// SUPABASE_SERVICE_ROLE_KEY los inyecta el propio runtime de Supabase, no
+// hace falta configurarlos.
+
+import { createClient } from 'jsr:@supabase/supabase-js@2'
+
+const GROQ_MODEL = 'openai/gpt-oss-120b'
+
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL')!,
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+)
+
+function areasComparten(a: string[], b: string[]) {
+  return (a ?? []).some((x) => (b ?? []).includes(x))
+}
+
+async function preguntarAlModelo(reto: any, candidatas: any[]) {
+  const groqKey = Deno.env.get('GROQ_API_KEY')
+  if (!groqKey) {
+    console.error('radar-match: falta el secret GROQ_API_KEY')
+    return null
+  }
+
+  const lista = candidatas
+    .map((c, i) => `${i + 1}. id="${c.id}" — "${c.necesidad_oferta}"`)
+    .join('\n')
+
+  const prompt = `Eres quien decide, en el Radar del ecosistema GovTech, si una solución propuesta por una empresa, startup o universidad resuelve DE VERDAD el reto que ha planteado una Administración — no si comparten tema por encima, sino si una persona razonable diría "sí, esto responde a eso".
+
+Reto planteado por la Administración:
+"${reto.necesidad_oferta}"
+
+Soluciones candidatas (comparten al menos un área con el reto, pero eso no basta por sí solo):
+${lista}
+
+Si UNA de ellas resuelve de verdad el reto, responde solo con este JSON, sin nada más alrededor:
+{"id": "<el id de esa candidata>", "explicacion": "<una frase breve, en español, explicando por qué encajan>"}
+
+Si ninguna encaja de verdad (aunque compartan área o tema por encima), responde exactamente:
+{"id": null, "explicacion": null}`
+
+  const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${groqKey}`,
+    },
+    body: JSON.stringify({
+      model: GROQ_MODEL,
+      messages: [{ role: 'user', content: prompt }],
+      response_format: { type: 'json_object' },
+      temperature: 0.2,
+    }),
+  })
+
+  if (!resp.ok) {
+    console.error('radar-match: Groq respondió', resp.status, await resp.text())
+    return null
+  }
+
+  const data = await resp.json()
+  try {
+    const contenido = JSON.parse(data.choices[0].message.content)
+    if (!contenido.id) return null
+    const candidata = candidatas.find((c) => c.id === contenido.id)
+    if (!candidata || !contenido.explicacion) return null
+    return { solucionId: candidata.id, explicacion: String(contenido.explicacion) }
+  } catch (err) {
+    console.error('radar-match: no se pudo interpretar la respuesta del modelo', err, data)
+    return null
+  }
+}
+
+Deno.serve(async (req) => {
+  try {
+    const { record } = await req.json()
+    if (!record?.id || !record?.perfil) {
+      return new Response('sin registro', { status: 400 })
+    }
+
+    // Por si el trigger llegara a dispararse dos veces para la misma fila
+    // (no debería, pero es una llamada barata de comprobar antes de gastar
+    // una consulta al modelo).
+    const { data: yaExiste } = await supabase
+      .from('radar_matches')
+      .select('reto_id')
+      .or(`reto_id.eq.${record.id},solucion_id.eq.${record.id}`)
+      .maybeSingle()
+    if (yaExiste) return new Response('ya tenía match', { status: 200 })
+
+    const esReto = record.perfil === 'administracion'
+
+    const { data: candidatasBrutas, error } = await supabase
+      .from('radar_respuestas')
+      .select('id, necesidad_oferta, areas')
+      .neq('id', record.id)
+      [esReto ? 'neq' : 'eq']('perfil', 'administracion')
+
+    if (error) {
+      console.error('radar-match: error leyendo candidatas', error)
+      return new Response('error leyendo candidatas', { status: 500 })
+    }
+
+    // Solo candidatas que compartan área y que todavía no tengan pareja.
+    const { data: yaEmparejadas } = await supabase.from('radar_matches').select('reto_id, solucion_id')
+    const idsOcupados = new Set((yaEmparejadas ?? []).flatMap((m) => [m.reto_id, m.solucion_id]))
+    const candidatas = (candidatasBrutas ?? []).filter(
+      (c) => !idsOcupados.has(c.id) && areasComparten(c.areas, record.areas),
+    )
+    if (candidatas.length === 0) return new Response('sin candidatas', { status: 200 })
+
+    // Cuando la fila nueva ES el reto, `record` ya es el reto y las
+    // candidatas son soluciones — directo. Cuando la fila nueva es una
+    // solución, hay que preguntar por cada reto candidato con esa única
+    // solución como candidata suya, no al revés (el modelo espera "un reto,
+    // varias soluciones candidatas").
+    let matchFinal: { retoId: string; solucionId: string; explicacion: string } | null = null
+    if (esReto) {
+      const r = await preguntarAlModelo(record, candidatas)
+      if (r) matchFinal = { retoId: record.id, solucionId: r.solucionId, explicacion: r.explicacion }
+    } else {
+      for (const retoCandidato of candidatas) {
+        const r = await preguntarAlModelo(retoCandidato, [record])
+        if (r) {
+          matchFinal = { retoId: retoCandidato.id, solucionId: record.id, explicacion: r.explicacion }
+          break
+        }
+      }
+    }
+
+    if (!matchFinal) return new Response('sin match', { status: 200 })
+
+    const { error: errorInsert } = await supabase.from('radar_matches').insert({
+      reto_id: matchFinal.retoId,
+      solucion_id: matchFinal.solucionId,
+      explicacion: matchFinal.explicacion,
+    })
+    if (errorInsert) {
+      // Conflicto de clave (alguien más ya lo emparejó mientras tanto) no es
+      // un fallo real — es exactamente la garantía 1:1 haciendo su trabajo.
+      if (errorInsert.code !== '23505') {
+        console.error('radar-match: error guardando el match', errorInsert)
+        return new Response('error guardando el match', { status: 500 })
+      }
+    }
+
+    return new Response('match guardado', { status: 200 })
+  } catch (err) {
+    console.error('radar-match: error inesperado', err)
+    return new Response('error inesperado', { status: 500 })
+  }
+})

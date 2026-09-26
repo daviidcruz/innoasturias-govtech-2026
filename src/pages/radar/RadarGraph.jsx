@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '../../lib/supabase.js'
 import { PERFILES, etiquetaNodo, esReto } from '../../data/radar.js'
-import { calcularMatches } from './graphLayout.js'
 
 const COLOR_MATCH = 'var(--color-mint)'
 const COLOR_RETO = 'var(--color-coral)'
@@ -593,7 +592,7 @@ function TarjetaMini({ fila, principal, onClick }) {
  *  Las coordenadas del hilo aquí sí se miden del DOM (`getBoundingClientRect`)
  *  — a diferencia del mapa grande, este panel no hace pan ni zoom, así que
  *  no hay nada que lo desincronice. */
-function PanelFoco({ fila, relacionadas, onCerrar, onFoco }) {
+function PanelFoco({ fila, relacionadas, explicacion, onCerrar, onFoco }) {
   const color = PERFILES[fila.perfil]?.color ?? '#fff'
 
   const contenedorRef = useRef(null)
@@ -689,6 +688,9 @@ function PanelFoco({ fila, relacionadas, onCerrar, onFoco }) {
           <p className="text-[0.6875rem] font-bold uppercase tracking-[0.12em]" style={{ color: COLOR_MATCH }}>
             Conecta con
           </p>
+          {explicacion && (
+            <p className="mt-2 text-[0.9375rem] leading-relaxed text-white/80">{explicacion}</p>
+          )}
           <div
             ref={contenedorRef}
             className="relative mt-4 flex max-h-[22rem] items-stretch justify-between gap-8 overflow-hidden"
@@ -754,7 +756,56 @@ const ZOOM_MAX_REL = 3
  * DOM ya colocado, así que siguen a sus tarjetas sea cual sea el zoom.
  */
 export default function RadarGraph({ filas, reciente, llenarAltura = false, modo = 'libre' }) {
-  const { pares, emparejadas } = useMemo(() => calcularMatches(filas), [filas])
+  // Los matches ya no se calculan aquí por área compartida — los decide
+  // una Edge Function (`radar-match`) con un modelo de lenguaje en cuanto
+  // llega cada respuesta nueva, y quedan guardados en `radar_matches` junto
+  // con una frase explicando por qué encajan de verdad. Este componente
+  // solo los lee (y escucha en directo los que vayan llegando), igual que
+  // ya hace con `radar_vistos`.
+  const [matches, setMatches] = useState([])
+
+  useEffect(() => {
+    let activo = true
+    supabase
+      .from('radar_matches')
+      .select('reto_id, solucion_id, explicacion')
+      .then(({ data, error }) => {
+        if (!activo) return
+        if (error) {
+          console.error('Radar: error al cargar los matches', error)
+          return
+        }
+        setMatches(data ?? [])
+      })
+
+    const canal = supabase
+      .channel('radar_matches_en_vivo')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'radar_matches' },
+        (payload) => {
+          setMatches((prev) => (prev.some((m) => m.reto_id === payload.new.reto_id) ? prev : [...prev, payload.new]))
+        },
+      )
+      .subscribe()
+
+    return () => {
+      activo = false
+      supabase.removeChannel(canal)
+    }
+  }, [])
+
+  const pares = useMemo(() => matches.map((m) => ({ reto: m.reto_id, solucion: m.solucion_id })), [matches])
+  const emparejadas = useMemo(() => new Set(matches.flatMap((m) => [m.reto_id, m.solucion_id])), [matches])
+  const explicacionPorId = useMemo(() => {
+    const mapa = new Map()
+    for (const m of matches) {
+      mapa.set(m.reto_id, m.explicacion)
+      mapa.set(m.solucion_id, m.explicacion)
+    }
+    return mapa
+  }, [matches])
+
   const ordenado = modo === 'ordenado'
 
   const viewportRef = useRef(null)
@@ -1154,6 +1205,7 @@ export default function RadarGraph({ filas, reciente, llenarAltura = false, modo
             <PanelFoco
               fila={filaFoco}
               relacionadas={filasRelacionadas}
+              explicacion={explicacionPorId.get(filaFoco.id)}
               onCerrar={() => setFoco(null)}
               onFoco={abrirFoco}
             />
