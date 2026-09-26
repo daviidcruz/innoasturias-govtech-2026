@@ -24,10 +24,6 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
 )
 
-function areasComparten(a: string[], b: string[]) {
-  return (a ?? []).some((x) => (b ?? []).includes(x))
-}
-
 async function preguntarAlModelo(reto: any, candidatas: any[]) {
   const groqKey = Deno.env.get('GROQ_API_KEY')
   if (!groqKey) {
@@ -51,7 +47,7 @@ En resumen: acepta la relación si, pensando un momento en qué permite hacer es
 Reto planteado por la Administración:
 "${reto.necesidad_oferta}"
 
-Soluciones candidatas (comparten al menos un área con el reto, pero eso no basta por sí solo):
+Soluciones candidatas (son todas las que todavía no tienen pareja — la categoría o área que marcó cada una en el formulario es solo una etiqueta orientativa, ignórala si el contenido dice otra cosa: lo que importa es el objetivo real de cada una, no la casilla que marcaron):
 ${lista}
 
 Si UNA de ellas encaja según ese criterio, responde solo con este JSON, sin nada más alrededor:
@@ -122,12 +118,14 @@ Deno.serve(async (req) => {
       return new Response('error leyendo candidatas', { status: 500 })
     }
 
-    // Solo candidatas que compartan área y que todavía no tengan pareja.
+    // Todas las que todavía no tengan pareja — sin filtrar por área. El área
+    // es una casilla que marca la propia persona en el formulario, no
+    // siempre refleja bien el contenido real (dos respuestas que sí encajan
+    // pueden llevar áreas distintas, y al revés); decidirlo solo por
+    // contenido es cosa del modelo, no de una coincidencia de checkbox.
     const { data: yaEmparejadas } = await supabase.from('radar_matches').select('reto_id, solucion_id')
     const idsOcupados = new Set((yaEmparejadas ?? []).flatMap((m) => [m.reto_id, m.solucion_id]))
-    const candidatas = (candidatasBrutas ?? []).filter(
-      (c) => !idsOcupados.has(c.id) && areasComparten(c.areas, record.areas),
-    )
+    const candidatas = (candidatasBrutas ?? []).filter((c) => !idsOcupados.has(c.id))
     if (candidatas.length === 0) return new Response('sin candidatas', { status: 200 })
 
     // Cuando la fila nueva ES el reto, `record` ya es el reto y las
