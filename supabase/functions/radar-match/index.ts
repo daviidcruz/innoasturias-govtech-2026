@@ -114,7 +114,11 @@ Si ninguna encaja ni siquiera de forma indirecta y coherente, responde exactamen
   // cada intento añade un poco de aleatoriedad a la espera — para que
   // dejen de ir sincronizadas y se vayan repartiendo solas — y hay varias
   // rondas, no solo una.
-  const MAX_VUELTAS = 4
+  // El tope de rondas está limitado por el propio tiempo máximo de
+  // ejecución de una Edge Function (unos minutos) — no se puede alargar
+  // sin límite. 6 rondas con hasta ~20s de espera cada una encajan con
+  // margen de sobra dentro de ese tope.
+  const MAX_VUELTAS = 6
   let resp: Response | null = null
   for (let vuelta = 0; vuelta < MAX_VUELTAS && !resp; vuelta++) {
     let ultimoLimitado: Response | null = null
@@ -131,7 +135,7 @@ Si ninguna encaja ni siquiera de forma indirecta y coherente, responde exactamen
       const cuerpoError = await ultimoLimitado.clone().text()
       const sugerido = Number(cuerpoError.match(/try again in ([\d.]+)s/)?.[1] ?? '4')
       const jitter = Math.random() * 6
-      const espera = Math.min(sugerido, 20) + jitter
+      const espera = Math.min(sugerido, 15) + jitter
       console.error(
         `radar-match: todas las claves al límite (vuelta ${vuelta + 1}/${MAX_VUELTAS}), reintentando en`,
         espera.toFixed(1),
@@ -183,11 +187,17 @@ Deno.serve(async (req) => {
     // persona eligió en el formulario.
     const esReto = record.tipo === 'reto'
 
+    // Se piden más de las que hacen falta (LIMITE_CANDIDATAS de sobra) para
+    // poder descartar después las que ya tengan pareja y aun así quedarnos
+    // con el límite real completo.
+    const LIMITE_CANDIDATAS = 15
     const { data: candidatasBrutas, error } = await supabase
       .from('radar_respuestas')
       .select('id, necesidad_oferta, areas')
       .neq('id', record.id)
       .eq('tipo', esReto ? 'solucion' : 'reto')
+      .order('creado_en', { ascending: false })
+      .limit(LIMITE_CANDIDATAS * 3)
 
     if (error) {
       console.error('radar-match: error leyendo candidatas', error)
@@ -199,9 +209,21 @@ Deno.serve(async (req) => {
     // siempre refleja bien el contenido real (dos respuestas que sí encajan
     // pueden llevar áreas distintas, y al revés); decidirlo solo por
     // contenido es cosa del modelo, no de una coincidencia de checkbox.
+    //
+    // El número de candidatas está acotado (LIMITE_CANDIDATAS, las más
+    // recientes primero) porque el coste en tokens de la llamada a Groq
+    // crece con la lista — probado en directo: sin límite, una avalancha de
+    // envíos simultáneos (donde ninguno tiene aún pareja) hacía que cada
+    // llamada llevara hasta 35 candidatas y costara 2500-3000 tokens en vez
+    // de los ~900-1300 de antes, agotando el cupo por minuto mucho antes.
+    // Limitarlo a las más recientes mantiene el coste por llamada estable
+    // sin apenas perder calidad — en un evento real, lo más probable es que
+    // la pareja de alguien esté entre quienes acaban de enviar también.
     const { data: yaEmparejadas } = await supabase.from('radar_matches').select('reto_id, solucion_id')
     const idsOcupados = new Set((yaEmparejadas ?? []).flatMap((m) => [m.reto_id, m.solucion_id]))
-    const candidatas = (candidatasBrutas ?? []).filter((c) => !idsOcupados.has(c.id))
+    const candidatas = (candidatasBrutas ?? [])
+      .filter((c) => !idsOcupados.has(c.id))
+      .slice(0, LIMITE_CANDIDATAS)
     if (candidatas.length === 0) return new Response('sin candidatas', { status: 200 })
 
     // Una sola llamada, con todas las candidatas dentro — nunca una por
