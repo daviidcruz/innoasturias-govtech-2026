@@ -60,6 +60,15 @@ export function preguntaReto(perfil) {
     : '¿En qué puedes ayudar a la Administración?'
 }
 
+/** Para quien se queda en blanco delante del textarea — un empujón
+ *  concreto, no un ejemplo de relleno que la gente acabe copiando tal
+ *  cual. */
+export function ayudaReto(perfil) {
+  return perfil === 'administracion'
+    ? 'Puede ser algo muy concreto (un trámite que se atasca, un dato que no tenéis) o algo más amplio — lo que os quite el sueño ahora mismo.'
+    : 'Cuéntanos a qué os dedicáis o cuál es vuestro punto fuerte — no hace falta que sea muy técnico, con que se entienda vale.'
+}
+
 /** Nombre a mostrar en un nodo del grafo, respetando la visibilidad elegida. */
 export function etiquetaNodo(fila) {
   if (fila.visible && fila.organizacion?.trim()) return fila.organizacion.trim()

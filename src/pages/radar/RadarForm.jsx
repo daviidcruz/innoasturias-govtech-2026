@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import Backdrop from '../../components/Backdrop.jsx'
 import { supabase } from '../../lib/supabase.js'
-import { PERFILES, ORDEN_PERFILES, AREAS, ORDEN_AREAS, preguntaReto } from '../../data/radar.js'
+import { PERFILES, ORDEN_PERFILES, AREAS, ORDEN_AREAS, preguntaReto, ayudaReto } from '../../data/radar.js'
 
 const LIMITE_TEXTO = 120
 const TOTAL_PASOS = 4
@@ -223,6 +223,7 @@ export default function RadarForm() {
                     <h1 className="text-[1.375rem] font-extrabold leading-tight text-white">
                       {preguntaReto(perfil)}
                     </h1>
+                    <p className="mt-2 text-[0.8125rem] text-white/55">{ayudaReto(perfil)}</p>
                     <textarea
                       value={necesidadOferta}
                       onChange={(e) => setNecesidadOferta(e.target.value.slice(0, LIMITE_TEXTO))}
