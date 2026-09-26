@@ -182,7 +182,7 @@ export default function RadarPantalla() {
             Esperando la primera respuesta — escanea el código QR para participar.
           </p>
         ) : (
-          <RadarGraph filas={filas} reciente={reciente} llenarAltura modo="ordenado" />
+          <RadarGraph filas={filas} reciente={reciente} llenarAltura />
         )}
       </div>
     </div>
