@@ -73,3 +73,11 @@ export function areasDeFila(fila) {
   if (fila.area) return [fila.area]
   return []
 }
+
+/** En el Radar solo hay dos lados: la Administración trae el reto, todo lo
+ *  demás (empresa, startup, universidad) trae una solución. Una sola
+ *  función para decidirlo, así el badge de la tarjeta y cualquier otro
+ *  sitio que necesite distinguirlos leen siempre el mismo criterio. */
+export function esReto(fila) {
+  return fila.perfil === 'administracion'
+}

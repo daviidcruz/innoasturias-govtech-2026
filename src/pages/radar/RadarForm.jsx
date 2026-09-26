@@ -43,7 +43,7 @@ function BotonAtras({ onClick }) {
 }
 
 /**
- * /radar — el formulario que la gente rellena desde el móvil, escaneando el
+ * /radar/participar — el formulario que la gente rellena desde el móvil, escaneando el
  * QR en la sala. Cuatro pasos, sin login: perfil → organización (opcional)
  * → la pregunta según el perfil → área. Al enviar, un único INSERT a
  * Supabase; la política RLS de la tabla no permite ni editar ni borrar

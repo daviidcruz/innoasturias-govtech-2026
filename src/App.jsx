@@ -10,6 +10,7 @@ import Home from './pages/Home.jsx'
 const RadarForm = lazy(() => import('./pages/radar/RadarForm.jsx'))
 const RadarPantalla = lazy(() => import('./pages/radar/RadarPantalla.jsx'))
 const RadarResultados = lazy(() => import('./pages/radar/RadarResultados.jsx'))
+const RadarLanding = lazy(() => import('./pages/radar/RadarLanding.jsx'))
 
 export default function App() {
   return (
@@ -17,7 +18,8 @@ export default function App() {
       <Suspense fallback={null}>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/radar" element={<RadarForm />} />
+          <Route path="/radar" element={<RadarLanding />} />
+          <Route path="/radar/participar" element={<RadarForm />} />
           <Route path="/radar/pantalla" element={<RadarPantalla />} />
           <Route path="/radar/resultados" element={<RadarResultados />} />
         </Routes>

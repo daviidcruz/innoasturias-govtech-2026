@@ -1,14 +1,28 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { PERFILES, AREAS, areasDeFila, etiquetaNodo } from '../../data/radar.js'
+import { supabase } from '../../lib/supabase.js'
+import { PERFILES, etiquetaNodo, esReto } from '../../data/radar.js'
 import { calcularMatches } from './graphLayout.js'
 
 const COLOR_MATCH = 'var(--color-mint)'
-const CARD_W_MIN = 208
-const CARD_W_MAX = 336
-const CARD_H = 116
-const HUECO = 28
+const COLOR_RETO = 'var(--color-coral)'
+const COLOR_SOLUCION = 'var(--color-mint)'
+// El punto ya no distingue el perfil (cuatro colores parecidos no se leen a
+// simple vista, proyectado y desde lejos) — marca si la tarjeta está "sin
+// abrir" durante la presentación. Un único color, y desaparece en cuanto se
+// hace foco en ella (ver `vistos` en el componente principal).
+const COLOR_SIN_ABRIR = 'var(--color-blush)'
+// Tarjeta grande a propósito: esto se lee desde el fondo de una sala
+// proyectado, no en una pantalla de móvil a un palmo de la cara. El ancho
+// crece con el hueco (ver `calcularLienzo`), no al revés. Deja hueco de
+// sobra para la insignia Reto/Solución, que comparte la misma fila que el
+// nombre — sin ese margen extra, el nombre se recortaba con "…" incluso en
+// organizaciones con un nombre normal.
+const CARD_W_MIN = 270
+const CARD_W_MAX = 500
+const CARD_H = 158
+const HUECO = 30
 
 /** El ancho de una tarjeta no es fijo: se ajusta al nombre que lleva
  *  dentro, entre un mínimo y un máximo legibles — así una organización con
@@ -16,7 +30,7 @@ const HUECO = 28
  *  nombre no tiene por qué recortarse si cabe entero. */
 function anchoTarjeta(fila) {
   const largo = etiquetaNodo(fila).length
-  return Math.max(CARD_W_MIN, Math.min(CARD_W_MAX, largo * 8.2 + 84))
+  return Math.max(CARD_W_MIN, Math.min(CARD_W_MAX, largo * 10 + 140))
 }
 
 /** Hash de 32 bits de un string, para sembrar el generador de posiciones:
@@ -56,7 +70,15 @@ function calcularLienzo(filas, aspectoDeseado) {
   const n = filas.length
   if (n === 0) return { w: 1000, h: 640 }
   const areaTotal = filas.reduce((acc, f) => acc + (anchoTarjeta(f) + HUECO) * (CARD_H + HUECO), 0)
-  const area = areaTotal * 2.3
+  // Con pocas respuestas (lo normal al empezar el evento) un margen tan
+  // generoso como el de antes (2.3×) dejaba el grupo perdido en medio de
+  // mucho vacío, y al encuadrarlo entero (`zoomAjuste`) las tarjetas salían
+  // diminutas para que cupiera tanto hueco de sobra. Con pocas tarjetas se
+  // empaquetan más pegadas (multiplicador bajo) y con muchas se les da más
+  // aire progresivamente, así el mapa se lee "amplio" sin que cada tarjeta
+  // encoja.
+  const multiplicador = Math.min(2.1, 1.25 + n * 0.045)
+  const area = areaTotal * multiplicador
   const w = Math.sqrt(area * aspectoDeseado)
   const h = area / w
   const anchoMax = Math.max(...filas.map(anchoTarjeta)) + HUECO
@@ -194,6 +216,125 @@ function colocarTarjetas(filas, pares, ancho, alto) {
   return posiciones
 }
 
+const FILAS_POR_COLUMNA = 4
+const HUECO_ENTRE_BLOQUES = 90
+const HUECO_SOLUCION_RETO = 44
+
+/**
+ * El modo "ordenado" (para /radar/pantalla): nada de física ni azar, y en
+ * bloques — no dos columnas grandes separadas (todas las soluciones a un
+ * lado, todos los retos al otro, tan lejos que el hilo cruza toda la
+ * pantalla), sino parejas [solución | su reto] pegadas entre sí, una al
+ * lado de la otra, y esas parejas de columnas se suceden hacia la
+ * derecha: bloque 1, bloque 2, bloque 3… Cada bloque apila hasta
+ * `FILAS_POR_COLUMNA` filas antes de pasar al siguiente.
+ *
+ * Con el match ya limitado a 1:1 (`calcularMatches`), cada reto tiene como
+ * mucho una solución y viceversa, así que "compartir fila" siempre quiere
+ * decir "son ese par" — nunca una relación inventada por colocación. Lo
+ * que no tiene match (retos o soluciones sueltas) sigue apilándose después
+ * de lo emparejado, en sus propias filas, dentro del mismo esquema de
+ * bloques.
+ */
+function colocarTarjetasOrdenado(filas, pares) {
+  const retos = filas.filter(esReto)
+  const soluciones = filas.filter((f) => !esReto(f))
+  if (filas.length === 0) return { posiciones: {}, w: 1000, h: 640 }
+
+  const filaDeReto = new Map(retos.map((f, i) => [f.id, i]))
+
+  // 1:1 de verdad — un solo `set` por reto y por solución, ya lo garantiza
+  // `calcularMatches`; aquí solo se invierte el mapa para leerlo en los dos
+  // sentidos.
+  const solucionDeReto = new Map(pares.map(({ reto, solucion }) => [reto, solucion]))
+  const retoDeSolucion = new Map(pares.map(({ reto, solucion }) => [solucion, reto]))
+
+  const filaDeSolucion = new Map()
+  for (const f of soluciones) {
+    const reto = retoDeSolucion.get(f.id)
+    if (reto != null && filaDeReto.has(reto)) filaDeSolucion.set(f.id, filaDeReto.get(reto))
+  }
+  let siguienteFilaLibre = retos.length
+  for (const f of soluciones) {
+    if (filaDeSolucion.has(f.id)) continue
+    filaDeSolucion.set(f.id, siguienteFilaLibre)
+    siguienteFilaLibre++
+  }
+
+  const columnaDe = (fila) => Math.floor(fila / FILAS_POR_COLUMNA)
+  const filaEnColumnaDe = (fila) => fila % FILAS_POR_COLUMNA
+
+  const anchoMaxPorColumna = (grupo, filaDeFn) => {
+    const anchos = new Map()
+    for (const f of grupo) {
+      const col = columnaDe(filaDeFn(f.id))
+      anchos.set(col, Math.max(anchos.get(col) ?? 0, anchoTarjeta(f)))
+    }
+    return anchos
+  }
+  const anchoColSoluciones = anchoMaxPorColumna(soluciones, (id) => filaDeSolucion.get(id))
+  const anchoColRetos = anchoMaxPorColumna(retos, (id) => filaDeReto.get(id))
+
+  const maxCol = Math.max(-1, ...anchoColSoluciones.keys(), ...anchoColRetos.keys())
+
+  // El punto de partida (x) de cada bloque, y cuánto ocupa la solución
+  // dentro de él — un bloque sin nada a un lado (p. ej. sobran soluciones
+  // más allá de los retos que hay) no reserva ese hueco de más, se encoge
+  // a lo que de verdad lleva dentro.
+  const inicioBloque = new Map()
+  const anchoSolucionEnBloque = new Map()
+  let acumulado = 0
+  for (let c = 0; c <= maxCol; c++) {
+    inicioBloque.set(c, acumulado)
+    const anchoSol = anchoColSoluciones.get(c) ?? 0
+    const anchoReto = anchoColRetos.get(c) ?? 0
+    anchoSolucionEnBloque.set(c, anchoSol)
+    const huecoInterno = anchoSol > 0 && anchoReto > 0 ? HUECO_SOLUCION_RETO : 0
+    acumulado += anchoSol + huecoInterno + anchoReto + HUECO_ENTRE_BLOQUES
+  }
+
+  const posiciones = {}
+  for (const f of soluciones) {
+    const fila = filaDeSolucion.get(f.id)
+    const col = columnaDe(fila)
+    posiciones[f.id] = {
+      x: inicioBloque.get(col) ?? 0,
+      y: filaEnColumnaDe(fila) * (CARD_H + HUECO),
+    }
+  }
+  for (const f of retos) {
+    const fila = filaDeReto.get(f.id)
+    const col = columnaDe(fila)
+    const anchoSol = anchoSolucionEnBloque.get(col) ?? 0
+    const huecoInterno = anchoSol > 0 ? HUECO_SOLUCION_RETO : 0
+    posiciones[f.id] = {
+      x: (inicioBloque.get(col) ?? 0) + anchoSol + huecoInterno,
+      y: filaEnColumnaDe(fila) * (CARD_H + HUECO),
+    }
+  }
+
+  let minX = Infinity
+  let minY = Infinity
+  let maxX = -Infinity
+  let maxY = -Infinity
+  for (const f of filas) {
+    const p = posiciones[f.id]
+    if (!p) continue
+    minX = Math.min(minX, p.x)
+    minY = Math.min(minY, p.y)
+    maxX = Math.max(maxX, p.x + anchoTarjeta(f))
+    maxY = Math.max(maxY, p.y + CARD_H)
+  }
+  const margen = 48
+  for (const f of filas) {
+    const p = posiciones[f.id]
+    if (!p) continue
+    p.x = p.x - minX + margen
+    p.y = p.y - minY + margen
+  }
+  return { posiciones, w: maxX - minX + margen * 2, h: maxY - minY + margen * 2 }
+}
+
 /** Hash → [0,1) estable, para la curvatura de un hilo o el desvío de
  *  rotación de una tarjeta. */
 function pseudoAleatorio(id) {
@@ -251,12 +392,12 @@ function Hilo({ id, x1, y1, x2, y2, activo = false, atenuado = false }) {
         d={d}
         fill="none"
         stroke={COLOR_MATCH}
-        strokeOpacity={activo ? 0.85 : 0.4}
-        strokeWidth={activo ? 2.5 : 1.5}
+        strokeOpacity={activo ? 0.9 : 0.5}
+        strokeWidth={activo ? 3.2 : 2}
         style={activo ? { filter: `drop-shadow(0 0 6px ${COLOR_MATCH})` } : undefined}
       />
       <motion.circle
-        r={activo ? 4 : 3}
+        r={activo ? 5 : 4}
         fill={COLOR_MATCH}
         style={{ color: COLOR_MATCH, filter: `drop-shadow(0 0 ${activo ? 8 : 5}px currentColor)` }}
         initial={{ cx: x1, cy: y1, opacity: 0 }}
@@ -307,7 +448,7 @@ function Parpadeo({ id }) {
  *  desenfoca, esta tarjeta y con la(s) que conecta se quedan nítidas por
  *  encima de ese velo, y se abre un panel centrado con el detalle
  *  completo — ver `PanelFoco`. */
-function Tarjeta({ fila, pos, ancho, esNueva, tieneMatch, atenuada, activa, onFoco }) {
+function Tarjeta({ fila, pos, ancho, esNueva, tieneMatch, atenuada, activa, sinAbrir, onFoco }) {
   const [hover, setHover] = useState(false)
   const color = PERFILES[fila.perfil]?.color ?? '#fff'
   const giro = (pseudoAleatorio(fila.id) - 0.5) * 5
@@ -345,22 +486,46 @@ function Tarjeta({ fila, pos, ancho, esNueva, tieneMatch, atenuada, activa, onFo
     >
       {tieneMatch && <Parpadeo id={fila.id} />}
 
-      <div className="flex items-start gap-2">
-        <span
-          className="mt-[4px] h-3 w-3 shrink-0 rounded-full"
-          style={{ backgroundColor: color, boxShadow: `0 0 5px ${color}` }}
-          aria-hidden="true"
-        />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[0.9375rem] font-bold leading-tight text-white">
-            {etiquetaNodo(fila)}
-          </p>
-          <p className="mt-1 text-[0.8125rem] leading-snug text-white/70 line-clamp-2">
-            {fila.necesidad_oferta}
-          </p>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex min-w-0 flex-1 items-start gap-2.5">
+          {sinAbrir && (
+            <span
+              className="mt-[6px] h-3.5 w-3.5 shrink-0 rounded-full"
+              style={{ backgroundColor: COLOR_SIN_ABRIR, boxShadow: `0 0 6px ${COLOR_SIN_ABRIR}` }}
+              aria-label="Sin abrir todavía"
+              title="Sin abrir todavía"
+            />
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[1.15rem] font-bold leading-tight text-white">
+              {etiquetaNodo(fila)}
+            </p>
+            <p className="mt-1.5 text-[1rem] leading-snug text-white/75 line-clamp-2">
+              {fila.necesidad_oferta}
+            </p>
+          </div>
         </div>
+        <InsigniaTipo reto={esReto(fila)} />
       </div>
     </motion.div>
+  )
+}
+
+/** El reto (lo pone la Administración) y la solución (todo lo demás) se
+ *  distinguen a simple vista, sin tener que leer el texto ni el perfil
+ *  primero — el color del punto ya dice qué perfil es, esta insignia dice
+ *  qué papel juega en el match. */
+function InsigniaTipo({ reto }) {
+  return (
+    <span
+      className="shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[0.625rem] font-extrabold uppercase tracking-[0.08em]"
+      style={{
+        backgroundColor: reto ? COLOR_RETO : COLOR_SOLUCION,
+        color: reto ? '#fff' : 'var(--color-ink)',
+      }}
+    >
+      {reto ? 'Reto' : 'Solución'}
+    </span>
   )
 }
 
@@ -389,16 +554,19 @@ function TarjetaMini({ fila, principal, onClick }) {
         boxShadow: principal ? `0 0 0 2px ${color}55, 0 8px 20px rgba(0,0,0,.4)` : '0 6px 16px rgba(0,0,0,.35)',
       }}
     >
-      <div className="flex items-start gap-2">
-        <span
-          className="mt-[4px] h-3 w-3 shrink-0 rounded-full"
-          style={{ backgroundColor: color, boxShadow: `0 0 5px ${color}` }}
-          aria-hidden="true"
-        />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[0.875rem] font-bold leading-tight text-white">{etiquetaNodo(fila)}</p>
-          <p className="mt-1 text-[0.75rem] leading-snug text-white/70 line-clamp-2">{fila.necesidad_oferta}</p>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex min-w-0 flex-1 items-start gap-2">
+          <span
+            className="mt-[4px] h-3 w-3 shrink-0 rounded-full"
+            style={{ backgroundColor: color, boxShadow: `0 0 5px ${color}` }}
+            aria-hidden="true"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[0.875rem] font-bold leading-tight text-white">{etiquetaNodo(fila)}</p>
+            <p className="mt-1 text-[0.75rem] leading-snug text-white/70 line-clamp-2">{fila.necesidad_oferta}</p>
+          </div>
         </div>
+        <InsigniaTipo reto={esReto(fila)} />
       </div>
     </Contenedor>
   )
@@ -409,14 +577,15 @@ function TarjetaMini({ fila, principal, onClick }) {
  *  el mapa: una a la izquierda, otra a la derecha, unidas por el mismo
  *  hilo con su punto de luz. Es el mapa acercándose a un solo par, no una
  *  lista de texto aparte — por eso reutiliza `TarjetaMini` y `Hilo` en vez
- *  de inventar una vista nueva. Con más de un match, los de la derecha se
- *  apilan y cada uno recibe su propio hilo desde la tarjeta principal.
+ *  de inventar una vista nueva. El match es 1:1 (`calcularMatches`), así
+ *  que `relacionadas` nunca trae más de una — pero la columna de la
+ *  derecha soporta una lista por si en el futuro eso cambia, sin que este
+ *  panel necesite tocarse.
  *  Las coordenadas del hilo aquí sí se miden del DOM (`getBoundingClientRect`)
  *  — a diferencia del mapa grande, este panel no hace pan ni zoom, así que
  *  no hay nada que lo desincronice. */
 function PanelFoco({ fila, relacionadas, onCerrar, onFoco }) {
   const color = PERFILES[fila.perfil]?.color ?? '#fff'
-  const areas = areasDeFila(fila)
 
   const contenedorRef = useRef(null)
   const izqRef = useRef(null)
@@ -486,10 +655,10 @@ function PanelFoco({ fila, relacionadas, onCerrar, onFoco }) {
             aria-hidden="true"
           />
           <div>
-            <p className="text-[1.25rem] font-extrabold leading-tight text-white">{etiquetaNodo(fila)}</p>
-            <p className="mt-1 text-[0.75rem] font-bold uppercase tracking-[0.1em]" style={{ color }}>
-              {PERFILES[fila.perfil]?.corto} · {areas.map((a) => AREAS[a]).join(', ')}
-            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-[1.25rem] font-extrabold leading-tight text-white">{etiquetaNodo(fila)}</p>
+              <InsigniaTipo reto={esReto(fila)} />
+            </div>
           </div>
         </div>
         <button
@@ -575,14 +744,53 @@ const ZOOM_MAX_REL = 3
  * se queda sola. Las coordenadas de los hilos se miden de verdad sobre el
  * DOM ya colocado, así que siguen a sus tarjetas sea cual sea el zoom.
  */
-export default function RadarGraph({ filas, reciente, llenarAltura = false }) {
+export default function RadarGraph({ filas, reciente, llenarAltura = false, modo = 'libre' }) {
   const { pares, emparejadas } = useMemo(() => calcularMatches(filas), [filas])
+  const ordenado = modo === 'ordenado'
 
   const viewportRef = useRef(null)
   const arrastreRef = useRef(null)
   const [viewport, setViewport] = useState({ w: 0, h: 0 })
   const [vista, setVista] = useState(null) // { zoom, x, y }
   const [foco, setFoco] = useState(null)
+  // Qué tarjetas se han comentado ya en directo — persistido en Supabase
+  // (tabla `radar_vistos`), no en `radar_respuestas`: esa tabla se dejó
+  // explícitamente sin permiso de editar ni borrar, así que el marcador
+  // vive aparte, en su propia tabla de solo-insertar. Se carga al entrar y
+  // se escucha en directo, así que sobrevive a recargar la pantalla y, si
+  // hay más de una pantalla abierta a la vez, se comparte entre todas.
+  const [vistos, setVistos] = useState(() => new Set())
+
+  useEffect(() => {
+    let activo = true
+    supabase
+      .from('radar_vistos')
+      .select('respuesta_id')
+      .then(({ data, error }) => {
+        if (!activo) return
+        if (error) {
+          console.error('Radar: error al cargar lo ya comentado', error)
+          return
+        }
+        setVistos(new Set((data ?? []).map((r) => r.respuesta_id)))
+      })
+
+    const canal = supabase
+      .channel('radar_vistos_en_vivo')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'radar_vistos' },
+        (payload) => {
+          setVistos((prev) => (prev.has(payload.new.respuesta_id) ? prev : new Set(prev).add(payload.new.respuesta_id)))
+        },
+      )
+      .subscribe()
+
+    return () => {
+      activo = false
+      supabase.removeChannel(canal)
+    }
+  }, [])
 
   // Con qué otras tarjetas conecta cada una — para saber, al hacer foco en
   // una, cuáles más se quedan nítidas y cuáles se listan en el panel.
@@ -598,6 +806,34 @@ export default function RadarGraph({ filas, reciente, llenarAltura = false }) {
     }
     return mapa
   }, [pares])
+
+  // Al hacer foco en una tarjeta, se comenta ella y con quien hace match —
+  // en el panel se ve la una junto a la otra, así que la conversación ya
+  // las cubrió a las dos. Optimista en pantalla (no espera a Supabase para
+  // quitar el punto) y persistido en segundo plano; `ignoreDuplicates` hace
+  // que reabrir una tarjeta ya vista no falle por su clave repetida.
+  const abrirFoco = (id) => {
+    setFoco(id)
+    const relacionadas = [...(relacionadosPorId.get(id) ?? [])]
+    const nuevos = [id, ...relacionadas].filter((n) => !vistos.has(n))
+    if (nuevos.length === 0) return
+
+    setVistos((prev) => {
+      const siguiente = new Set(prev)
+      nuevos.forEach((n) => siguiente.add(n))
+      return siguiente
+    })
+
+    supabase
+      .from('radar_vistos')
+      .upsert(
+        nuevos.map((respuesta_id) => ({ respuesta_id })),
+        { onConflict: 'respuesta_id', ignoreDuplicates: true },
+      )
+      .then(({ error }) => {
+        if (error) console.error('Radar: error al marcar como comentado', error)
+      })
+  }
 
   const activos = useMemo(() => {
     if (!foco) return null
@@ -617,16 +853,27 @@ export default function RadarGraph({ filas, reciente, llenarAltura = false }) {
     ? [...(relacionadosPorId.get(foco) ?? [])].map((id) => filas.find((f) => f.id === id)).filter(Boolean)
     : []
 
-  const lienzo = useMemo(
-    () => calcularLienzo(filas, viewport.w > 0 ? viewport.w / viewport.h : 1.6),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [filas, viewport.w, viewport.h],
+  // Modo libre: física + azar sembrado, el lienzo se dimensiona aparte
+  // (`calcularLienzo`) y luego se colocan las tarjetas dentro. Modo
+  // ordenado: una sola función decide a la vez el lienzo y las posiciones,
+  // porque aquí el tamaño del lienzo es consecuencia directa de la
+  // cuadrícula (cuántas columnas de `FILAS_POR_COLUMNA` hacen falta a cada
+  // lado), no algo que se calcule por separado.
+  const resultadoOrdenado = useMemo(
+    () => (ordenado ? colocarTarjetasOrdenado(filas, pares) : null),
+    [ordenado, filas, pares],
   )
 
-  const posiciones = useMemo(
-    () => colocarTarjetas(filas, pares, lienzo.w, lienzo.h),
-    [filas, pares, lienzo.w, lienzo.h],
-  )
+  const lienzo = useMemo(() => {
+    if (ordenado) return resultadoOrdenado ?? { w: 1000, h: 640 }
+    return calcularLienzo(filas, viewport.w > 0 ? viewport.w / viewport.h : 1.6)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ordenado, resultadoOrdenado, filas, viewport.w, viewport.h])
+
+  const posiciones = useMemo(() => {
+    if (ordenado) return resultadoOrdenado?.posiciones ?? {}
+    return colocarTarjetas(filas, pares, lienzo.w, lienzo.h)
+  }, [ordenado, resultadoOrdenado, filas, pares, lienzo.w, lienzo.h])
 
   const lineas = useMemo(() => {
     const porId = new Map(filas.map((f) => [f.id, f]))
@@ -884,7 +1131,8 @@ export default function RadarGraph({ filas, reciente, llenarAltura = false }) {
                 tieneMatch={emparejadas.has(fila.id)}
                 activa={Boolean(activos) && activos.has(fila.id)}
                 atenuada={Boolean(activos) && !activos.has(fila.id)}
-                onFoco={setFoco}
+                sinAbrir={!vistos.has(fila.id)}
+                onFoco={abrirFoco}
               />
             )
           })}
@@ -898,7 +1146,7 @@ export default function RadarGraph({ filas, reciente, llenarAltura = false }) {
               fila={filaFoco}
               relacionadas={filasRelacionadas}
               onCerrar={() => setFoco(null)}
-              onFoco={setFoco}
+              onFoco={abrirFoco}
             />
           </div>
         )}
