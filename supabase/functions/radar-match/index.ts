@@ -39,7 +39,14 @@ async function preguntarAlModelo(reto: any, candidatas: any[]) {
     .map((c, i) => `${i + 1}. id="${c.id}" — "${c.necesidad_oferta}"`)
     .join('\n')
 
-  const prompt = `Eres quien decide, en el Radar del ecosistema GovTech, si una solución propuesta por una empresa, startup o universidad resuelve DE VERDAD el reto que ha planteado una Administración — no si comparten tema por encima, sino si una persona razonable diría "sí, esto responde a eso".
+  const prompt = `Eres quien decide, en el Radar del ecosistema GovTech, si una solución propuesta por una empresa, startup o universidad podría ayudar de verdad a resolver el reto que ha planteado una Administración.
+
+No exijas que la solución mencione el reto casi palabra por palabra — acepta también una relación indirecta o parcial, siempre que tenga sentido lógico y sea plausible en la práctica: piensa en lo que esa capacidad permite hacer, no solo en el texto literal. Ejemplos de este criterio, ni muy laxo ni muy estricto:
+- Reto "anonimizar documentos" + solución "protección de datos" → SÍ encaja: anonimizar es una técnica dentro de proteger datos, es coherente que quien ofrece protección de datos pueda anonimizar documentos.
+- Reto "obtener datos" + solución "despliegue de IA" → SÍ encaja: desplegar IA habilita automatizaciones, búsquedas y procesado que sirven para obtener datos — es una vía razonable, aunque no sea la única lectura posible.
+- Reto "limpiar cristales" + solución "fabricar cristal desde cero" → NO encaja: aunque comparten la palabra "cristal", son capacidades distintas (limpiar no es fabricar) — el parecido es solo superficial, no lógico.
+
+En resumen: acepta la relación si, pensando un momento en qué permite hacer esa solución, un profesional razonable diría "sí, esto puede servir para eso" — aunque sea de forma parcial o indirecta. Recházala solo si la capacidad de fondo es realmente distinta, no solo porque el texto no coincida palabra por palabra.
 
 Reto planteado por la Administración:
 "${reto.necesidad_oferta}"
@@ -47,10 +54,10 @@ Reto planteado por la Administración:
 Soluciones candidatas (comparten al menos un área con el reto, pero eso no basta por sí solo):
 ${lista}
 
-Si UNA de ellas resuelve de verdad el reto, responde solo con este JSON, sin nada más alrededor:
+Si UNA de ellas encaja según ese criterio, responde solo con este JSON, sin nada más alrededor:
 {"id": "<el id de esa candidata>", "explicacion": "<una frase breve, en español, explicando por qué encajan>"}
 
-Si ninguna encaja de verdad (aunque compartan área o tema por encima), responde exactamente:
+Si ninguna encaja ni siquiera de forma indirecta y coherente, responde exactamente:
 {"id": null, "explicacion": null}`
 
   const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
