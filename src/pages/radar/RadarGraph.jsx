@@ -207,10 +207,14 @@ function colocarTarjetas(filas, pares, ancho, alto) {
             pos[i].y -= empujeY * signoY
             pos[j].y += empujeY * signoY
           }
-          pos[i].x = Math.max(0, Math.min(ancho - anchos[i], pos[i].x))
-          pos[i].y = Math.max(0, Math.min(alto - CARD_H, pos[i].y))
-          pos[j].x = Math.max(0, Math.min(ancho - anchos[j], pos[j].x))
-          pos[j].y = Math.max(0, Math.min(alto - CARD_H, pos[j].y))
+          // Sin recorte a los límites del lienzo aquí: recortar deshacía la
+          // separación que se acaba de aplicar en cuanto el lienzo se quedaba
+          // pequeño para el número de tarjetas (las devolvía al borde, otra
+          // vez solapadas) — con muchas respuestas, esta pasada podía acabar
+          // sus 300 vueltas sin soltar el nudo. Que no se pisen es la regla
+          // que no se negocia; el encuadre final ya se ajusta solo a donde
+          // queden de verdad (`contenido`, más abajo), aunque se salgan del
+          // lienzo nominal.
         }
       }
     }
