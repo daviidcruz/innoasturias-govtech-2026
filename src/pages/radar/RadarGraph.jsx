@@ -22,7 +22,11 @@ const COLOR_SIN_ABRIR = 'var(--color-blush)'
 const CARD_W_MIN = 270
 const CARD_W_MAX = 500
 const CARD_H = 158
-const HUECO = 30
+// El hueco mínimo entre dos tarjetas — con pocas respuestas (donde el mapa
+// las hace grandes) 30px se notaba como si se tocaran o se solaparan
+// ligeramente. El doble deja separación de sobra para que el hilo del
+// match se lea entre medias, no pegado al borde de una tarjeta.
+const HUECO = 64
 
 /** El ancho de una tarjeta no es fijo: se ajusta al nombre que lleva
  *  dentro, entre un mínimo y un máximo legibles — así una organización con
@@ -118,7 +122,12 @@ function colocarTarjetas(filas, pares, ancho, alto) {
     .filter(([a, b]) => a !== undefined && b !== undefined)
 
   const REPULSION = 34000
-  const LONGITUD_ENLACE_BASE = 1.05
+  // >1 a propósito: si el enlace tira hasta dejarlas a un ancho de tarjeta
+  // de distancia justo, el hilo casi no tiene curva que dibujar y las dos
+  // tarjetas leen como una sola pegada por la mitad. Con más margen queda
+  // sitio para que el hilo (con su punto de luz) se vea de verdad entre
+  // medias, no aplastado contra el borde de una de las dos.
+  const LONGITUD_ENLACE_BASE = 1.6
   const K_ENLACE = 0.028
   const AMORTIGUACION = 0.8
   // El empuje hacia el centro es más flojo en horizontal que en vertical
