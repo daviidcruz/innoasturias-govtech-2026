@@ -147,7 +147,7 @@ export default function RadarForm() {
                 {paso === 1 && (
                   <div>
                     <h1 className="text-[1.375rem] font-extrabold leading-tight text-white">
-                      ¿Quién eres?
+                      ¿Qué eres?
                     </h1>
                     <div className="mt-6 grid gap-3">
                       {ORDEN_PERFILES.map((p) => (
@@ -177,7 +177,7 @@ export default function RadarForm() {
                     <h1 className="text-[1.375rem] font-extrabold leading-tight text-white">
                       Tu organización
                     </h1>
-                    <label htmlFor="organizacion" className="mt-6 block text-[0.875rem] text-white/75">
+                    <label htmlFor="organizacion" className="mt-3 block text-[0.875rem] text-white/75">
                       Nombre de tu organización o administración (opcional)
                     </label>
                     <input
@@ -186,7 +186,7 @@ export default function RadarForm() {
                       value={organizacion}
                       onChange={(e) => setOrganizacion(e.target.value)}
                       placeholder="Ej. Ayuntamiento de Oviedo"
-                      className="mt-2 w-full rounded-full border border-white/25 bg-white/10 px-5 py-3 text-[1rem] text-white placeholder:text-white/40 outline-none transition-colors focus:border-white focus:bg-white/15"
+                      className="mt-3 w-full rounded-full border border-white/25 bg-white/10 px-5 py-3 text-[1rem] text-white placeholder:text-white/40 outline-none transition-colors focus:border-white focus:bg-white/15"
                     />
 
                     {organizacion.trim() && (
