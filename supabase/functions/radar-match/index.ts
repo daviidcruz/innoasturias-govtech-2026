@@ -106,14 +106,17 @@ Si ninguna encaja ni siquiera de forma indirecta y coherente, responde exactamen
       body: cuerpo,
     })
 
-  // Primera vuelta: una clave tras otra, la primera que no dé 429 (límite
-  // de tokens superado) se queda con la respuesta. Un 429 de la última
-  // clave no descarta el intento entero — antes de rendirse, se espera un
-  // momento (Groq dice cuánto en su propio mensaje de error) y se repite
-  // la ronda completa una vez más; para entonces esa clave puede haber
-  // liberado cupo.
+  // Una clave tras otra, la primera que no dé 429 (límite de tokens
+  // superado) se queda con la respuesta. Si TODAS dan 429, no se rinde a
+  // la primera — probado en directo: con 70 avalanchas en el mismo
+  // instante, esperar siempre el mismo tiempo (el que sugiere Groq) hacía
+  // que todas reintentaran juntas otra vez y volvieran a chocar. Por eso
+  // cada intento añade un poco de aleatoriedad a la espera — para que
+  // dejen de ir sincronizadas y se vayan repartiendo solas — y hay varias
+  // rondas, no solo una.
+  const MAX_VUELTAS = 4
   let resp: Response | null = null
-  for (let vuelta = 0; vuelta < 2 && !resp; vuelta++) {
+  for (let vuelta = 0; vuelta < MAX_VUELTAS && !resp; vuelta++) {
     let ultimoLimitado: Response | null = null
     for (const clave of claves) {
       const intento = await llamarConClave(clave)
@@ -123,12 +126,19 @@ Si ninguna encaja ni siquiera de forma indirecta y coherente, responde exactamen
       }
       ultimoLimitado = intento
     }
-    if (!resp && ultimoLimitado && vuelta === 0) {
+    if (resp || !ultimoLimitado) break
+    if (vuelta < MAX_VUELTAS - 1) {
       const cuerpoError = await ultimoLimitado.clone().text()
-      const espera = Number(cuerpoError.match(/try again in ([\d.]+)s/)?.[1] ?? '4')
-      console.error('radar-match: todas las claves al límite, reintentando en', espera, 's')
-      await esperar(Math.min(espera, 15) * 1000)
-    } else if (!resp) {
+      const sugerido = Number(cuerpoError.match(/try again in ([\d.]+)s/)?.[1] ?? '4')
+      const jitter = Math.random() * 6
+      const espera = Math.min(sugerido, 20) + jitter
+      console.error(
+        `radar-match: todas las claves al límite (vuelta ${vuelta + 1}/${MAX_VUELTAS}), reintentando en`,
+        espera.toFixed(1),
+        's',
+      )
+      await esperar(espera * 1000)
+    } else {
       resp = ultimoLimitado
     }
   }
