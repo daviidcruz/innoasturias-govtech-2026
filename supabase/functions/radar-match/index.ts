@@ -1,26 +1,32 @@
 // radar-match — Edge Function del Radar del ecosistema.
 //
 // La dispara un trigger de base de datos (ver la migración
-// 20260926_radar_matches.sql) en cada INSERT de radar_respuestas. Antes el
-// match se calculaba en el navegador, solo por área compartida (checkbox
-// del formulario) — así dos respuestas sin relación real quedaban unidas
-// por llevar la misma etiqueta. Aquí, en cambio, se le pasa el texto real
-// del reto y de la(s) solución(es) candidata(s) a un modelo de lenguaje
-// (Groq) y solo se guarda un match si el modelo dice que de verdad
-// resuelve el problema — con una frase explicando por qué. Sin match
-// genuino, no se fuerza nada: la respuesta se queda suelta.
+// 20260926_radar_matches.sql) en cada INSERT de radar_respuestas, y además
+// un aviso de pg_cron cada minuto como red de seguridad (ver la migración
+// 20260927_radar_cola_fifo.sql). En ambos casos el cuerpo de la petición
+// se ignora — esta función no procesa "la fila que la disparó", procesa
+// la cola entera desde el principio, en el orden real de llegada.
+//
+// Por qué una cola y no una llamada a Groq por envío en paralelo: antes
+// cada envío disparaba su propia llamada a Groq a la vez que todos los
+// demás — probado en directo, con 70 envíos casi simultáneos muchas
+// llamadas competían por el mismo cupo de tokens/minuto y se quedaban sin
+// cupo pese a reintentar. Se descartó también un "plan B" por palabras
+// clave para esos casos: no puede explicar el POR QUÉ del match, y esa
+// frase es justo lo que necesita la presentadora del evento para leerla en
+// voz alta. La solución real es evitar la avalancha desde el origen: cada
+// envío se limita a APUNTARSE en la cola (columna `procesado_en`), y solo
+// un proceso a la vez llama a Groq, en estricto orden de llegada — así
+// nunca hay dos llamadas compitiendo por el mismo cupo. El resultado es
+// siempre una decisión real de la IA, con su explicación; lo único que
+// cambia con carga alta es cuánto se tarda en llegar a cada una, nunca la
+// calidad del match.
 //
 // Requiere el secret GROQ_API_KEY configurado en el proyecto (Project
 // Settings → Edge Functions → Secrets) — y, opcionalmente, GROQ_API_KEY_2,
 // GROQ_API_KEY_3... como cuentas de respaldo (ver `obtenerClaves`, más
-// abajo) para cuando la primera se quede sin cupo de tokens en plena
-// avalancha de envíos. SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY los
-// inyecta el propio runtime de Supabase, no hace falta configurarlos.
-//
-// Si Groq se queda sin cupo en TODAS las claves después de agotar los
-// reintentos, hay un plan B determinista por palabras clave
-// (`emparejarPorPalabrasClave`) — nunca sustituye una decisión real del
-// modelo, solo entra cuando el modelo no ha podido responder.
+// abajo) para multiplicar el cupo de tokens/minuto disponible. SUPABASE_URL
+// y SUPABASE_SERVICE_ROLE_KEY los inyecta el propio runtime de Supabase.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
@@ -33,10 +39,9 @@ const supabase = createClient(
 
 /** Todas las claves de Groq configuradas, en orden: GROQ_API_KEY primero,
  *  luego GROQ_API_KEY_2, GROQ_API_KEY_3... hasta la primera que no exista.
- *  Con una sola clave gratuita (8000 tokens/minuto) una avalancha de
- *  envíos casi simultáneos agota el cupo enseguida — probado en directo:
- *  con 29 respuestas en 2 minutos ya saltaban errores 429. Cada cuenta
- *  gratuita adicional multiplica ese cupo sin coste. */
+ *  Cada cuenta gratuita adicional suma otros 8000 tokens/minuto al cupo
+ *  combinado — con la cola, ese cupo ya no se reparte entre llamadas que
+ *  compiten a la vez, así que rinde mucho más que antes. */
 function obtenerClaves(): string[] {
   const claves: string[] = []
   const primera = Deno.env.get('GROQ_API_KEY')
@@ -50,143 +55,19 @@ function obtenerClaves(): string[] {
 
 const esperar = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-// --- Plan B: emparejar por palabras clave cuando Groq no responde ---
-//
-// Solo se usa cuando el modelo se ha quedado sin cupo en TODAS las claves
-// después de reintentar (ver `preguntarAlModelo`) — nunca cuando el modelo
-// SÍ ha respondido y ha decidido que no hay match; esa decisión no se pisa,
-// solo se sustituye la ausencia de respuesta.
-//
-// Es deliberadamente exigente porque no hay ningún razonamiento detrás,
-// solo comparación de palabras: exige varias palabras clave compartidas
-// (nunca solo una) y descarta parejas cuyo verbo principal es opuesto — la
-// trampa que se quería evitar es justo esta: "crear un coche" y "destruir
-// un coche" comparten "coche" pero no tienen nada que ver.
-
-const PALABRAS_VACIAS = new Set([
-  'a', 'ante', 'bajo', 'con', 'contra', 'de', 'desde', 'en', 'entre', 'hacia', 'hasta', 'para', 'por',
-  'segun', 'sin', 'sobre', 'tras', 'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'lo', 'al', 'del',
-  'y', 'o', 'u', 'e', 'pero', 'sino', 'que', 'como', 'si', 'porque', 'pues', 'cuando', 'donde',
-  'mi', 'mis', 'tu', 'tus', 'su', 'sus', 'nuestro', 'nuestra', 'nuestros', 'nuestras', 'vuestro', 'vuestra',
-  'este', 'esta', 'estos', 'estas', 'ese', 'esa', 'esos', 'esas', 'aquel', 'aquella', 'aquellos', 'aquellas',
-  'yo', 'ella', 'nosotros', 'vosotros', 'ellos', 'ellas', 'nos', 'os', 'se', 'le', 'les', 'me', 'te',
-  'muy', 'mas', 'menos', 'tan', 'tanto', 'solo', 'tambien', 'tampoco', 'ya', 'aun', 'todavia',
-  'es', 'son', 'ser', 'estar', 'estan', 'soy', 'eres', 'somos', 'sois', 'hay', 'tiene', 'tener', 'tenemos',
-  'no', 'si', 'ni', 'algo', 'alguna', 'algunas', 'alguno', 'algunos', 'cada', 'todo', 'toda', 'todos', 'todas',
-  'otro', 'otra', 'otros', 'otras', 'uno', 'para', 'poder', 'puede', 'podemos', 'sobre',
-])
-
-// Pares de verbos con sentido opuesto — si un lado usa uno y el otro su
-// pareja, el parecido léxico es engañoso y no debe unir aunque compartan
-// otras palabras (el sustantivo del ejemplo, "coche").
-const VERBOS_OPUESTOS: [string, string][] = [
-  ['crear', 'destruir'], ['crear', 'eliminar'], ['crear', 'borrar'], ['crear', 'quitar'],
-  ['construir', 'demoler'], ['construir', 'derribar'],
-  ['limpiar', 'ensuciar'], ['limpiar', 'contaminar'],
-  ['proteger', 'exponer'], ['proteger', 'vulnerar'], ['proteger', 'filtrar'],
-  ['aumentar', 'reducir'], ['aumentar', 'disminuir'], ['incrementar', 'reducir'], ['ampliar', 'reducir'],
-  ['mejorar', 'empeorar'],
-  ['abrir', 'cerrar'],
-  ['contratar', 'despedir'],
-  ['comprar', 'vender'],
-  ['instalar', 'desinstalar'], ['instalar', 'retirar'], ['instalar', 'desmontar'],
-  ['activar', 'desactivar'],
-  ['subir', 'bajar'],
-  ['incluir', 'excluir'],
-  ['unir', 'separar'], ['conectar', 'desconectar'],
-  ['iniciar', 'detener'], ['empezar', 'terminar'], ['arrancar', 'parar'],
-  ['centralizar', 'descentralizar'],
-  ['ocultar', 'revelar'], ['ocultar', 'publicar'],
-  ['acelerar', 'frenar'],
-]
-
-/** Recorta una palabra a 6 letras — forma barata de que "anonimizar" y
- *  "anonimización", o un singular y su plural, cuenten como la misma
- *  palabra clave sin necesidad de un analizador morfológico de verdad. */
-function raiz(palabra: string): string {
-  return palabra.length > 6 ? palabra.slice(0, 6) : palabra
-}
-
-/** Quita tildes y signos, pasa a minúsculas y trocea en palabras. */
-function normalizarTexto(texto: string): string[] {
-  return texto
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, ' ')
-    .split(/\s+/)
-    .filter(Boolean)
-}
-
-/** Palabras clave de un texto: sin palabras vacías, sin las muy cortas, ya
- *  recortadas a su raíz aproximada. */
-function palabrasClave(texto: string): Set<string> {
-  return new Set(
-    normalizarTexto(texto)
-      .filter((p) => p.length > 2 && !PALABRAS_VACIAS.has(p))
-      .map(raiz),
-  )
-}
-
-function tieneVerbosOpuestos(a: Set<string>, b: Set<string>): boolean {
-  return VERBOS_OPUESTOS.some(
-    ([x, y]) => (a.has(raiz(x)) && b.has(raiz(y))) || (a.has(raiz(y)) && b.has(raiz(x))),
-  )
-}
-
-function emparejarPorPalabrasClave(central: any, candidatos: any[]) {
-  const palabrasCentral = palabrasClave(central.necesidad_oferta)
-  if (palabrasCentral.size === 0) return null
-
-  let mejor: { candidata: any; comunes: string[]; ratio: number } | null = null
-
-  for (const candidata of candidatos) {
-    const palabrasCand = palabrasClave(candidata.necesidad_oferta)
-    if (palabrasCand.size === 0) continue
-    if (tieneVerbosOpuestos(palabrasCentral, palabrasCand)) continue
-
-    const comunes = [...palabrasCentral].filter((p) => palabrasCand.has(p))
-    const ratio = comunes.length / Math.min(palabrasCentral.size, palabrasCand.size)
-
-    // Al menos dos palabras clave compartidas, y que sean buena parte del
-    // texto más corto de los dos — una sola palabra suelta (p.ej. "datos")
-    // no basta, sería la misma trampa que se quiso evitar desde el principio.
-    if (comunes.length < 2 || ratio < 0.3) continue
-
-    if (!mejor || ratio > mejor.ratio) mejor = { candidata, comunes, ratio }
-  }
-
-  if (!mejor) return null
-  return {
-    candidataId: mejor.candidata.id,
-    explicacion: `Coinciden en varios términos (${mejor.comunes.slice(0, 3).join(', ')}) — emparejado por palabras clave porque el modelo no pudo responder a tiempo.`,
-  }
-}
-
 /**
- * Una sola llamada al modelo por respuesta nueva, venga de donde venga —
- * nunca una por cada candidata. Con la clave actual (8000 tokens/minuto,
- * ~900 por llamada) el bucle de antes podía disparar una llamada por cada
- * reto suelto al llegar una sola solución: con varias personas enviando
- * casi a la vez, eso agotaba el minuto de tokens enseguida. Aquí siempre
- * se le pasa al modelo la lista ENTERA de candidatas del lado contrario de
- * una vez, y elige como mucho una — el elemento fijo (`central`) hace de
- * reto o de solución según `centralEsReto`, y el prompt se redacta acorde.
+ * Una sola llamada al modelo por respuesta, con todas las candidatas del
+ * lado contrario dentro — el elemento fijo (`central`) hace de reto o de
+ * solución según `centralEsReto`, y el prompt se redacta acorde. Como la
+ * cola garantiza que solo hay una llamada en curso a la vez, los
+ * reintentos aquí son solo para fallos genuinos de Groq (no para una
+ * avalancha de llamadas compitiendo entre sí, que ya no puede pasar).
  */
-type ResultadoModelo =
-  | { estado: 'match'; candidataId: string; explicacion: string }
-  | { estado: 'sin_match' }
-  | { estado: 'agotado' }
-
-async function preguntarAlModelo(
-  central: any,
-  candidatos: any[],
-  centralEsReto: boolean,
-): Promise<ResultadoModelo> {
+async function preguntarAlModelo(central: any, candidatos: any[], centralEsReto: boolean) {
   const claves = obtenerClaves()
   if (claves.length === 0) {
     console.error('radar-match: falta el secret GROQ_API_KEY')
-    return { estado: 'agotado' }
+    return null
   }
 
   const lista = candidatos
@@ -233,19 +114,11 @@ Si ninguna encaja ni siquiera de forma indirecta y coherente, responde exactamen
       body: cuerpo,
     })
 
-  // Una clave tras otra, la primera que no dé 429 (límite de tokens
-  // superado) se queda con la respuesta. Si TODAS dan 429, no se rinde a
-  // la primera — probado en directo: con 70 avalanchas en el mismo
-  // instante, esperar siempre el mismo tiempo (el que sugiere Groq) hacía
-  // que todas reintentaran juntas otra vez y volvieran a chocar. Por eso
-  // cada intento añade un poco de aleatoriedad a la espera — para que
-  // dejen de ir sincronizadas y se vayan repartiendo solas — y hay varias
-  // rondas, no solo una.
-  // El tope de rondas está limitado por el propio tiempo máximo de
-  // ejecución de una Edge Function (unos minutos) — no se puede alargar
-  // sin límite. 6 rondas con hasta ~20s de espera cada una encajan con
-  // margen de sobra dentro de ese tope.
-  const MAX_VUELTAS = 6
+  // Una clave tras otra, la primera que no dé 429 se queda con la
+  // respuesta. Si TODAS dan 429 (cupo combinado agotado de verdad, no por
+  // colisión con otra llamada — eso ya no puede pasar con la cola), se
+  // reintenta unas pocas veces esperando lo que Groq sugiera.
+  const MAX_VUELTAS = 4
   let resp: Response | null = null
   for (let vuelta = 0; vuelta < MAX_VUELTAS && !resp; vuelta++) {
     let ultimoLimitado: Response | null = null
@@ -261,8 +134,7 @@ Si ninguna encaja ni siquiera de forma indirecta y coherente, responde exactamen
     if (vuelta < MAX_VUELTAS - 1) {
       const cuerpoError = await ultimoLimitado.clone().text()
       const sugerido = Number(cuerpoError.match(/try again in ([\d.]+)s/)?.[1] ?? '4')
-      const jitter = Math.random() * 6
-      const espera = Math.min(sugerido, 15) + jitter
+      const espera = Math.min(sugerido, 15) + Math.random() * 3
       console.error(
         `radar-match: todas las claves al límite (vuelta ${vuelta + 1}/${MAX_VUELTAS}), reintentando en`,
         espera.toFixed(1),
@@ -276,123 +148,120 @@ Si ninguna encaja ni siquiera de forma indirecta y coherente, responde exactamen
 
   if (!resp || !resp.ok) {
     console.error('radar-match: Groq respondió', resp?.status, await resp?.text())
-    return { estado: 'agotado' }
+    return null
   }
 
   const data = await resp.json()
   try {
     const contenido = JSON.parse(data.choices[0].message.content)
-    if (!contenido.id) return { estado: 'sin_match' }
+    if (!contenido.id) return null
     const candidata = candidatos.find((c) => c.id === contenido.id)
-    if (!candidata || !contenido.explicacion) return { estado: 'sin_match' }
-    return { estado: 'match', candidataId: candidata.id, explicacion: String(contenido.explicacion) }
+    if (!candidata || !contenido.explicacion) return null
+    return { candidataId: candidata.id, explicacion: String(contenido.explicacion) }
   } catch (err) {
     console.error('radar-match: no se pudo interpretar la respuesta del modelo', err, data)
-    return { estado: 'agotado' }
+    return null
   }
 }
 
-Deno.serve(async (req) => {
-  try {
-    const { record } = await req.json()
-    if (!record?.id || !record?.tipo) {
-      return new Response('sin registro', { status: 400 })
-    }
+/** Procesa una respuesta ya reclamada de la cola: busca candidatas del
+ *  lado contrario, le pregunta al modelo y guarda el match si lo hay.
+ *  Nunca lanza — cualquier fallo se registra y esa respuesta se queda sin
+ *  match esta vez (sigue disponible como candidata para futuras llegadas). */
+async function procesarUna(fila: any) {
+  const esReto = fila.tipo === 'reto'
 
-    // Por si el trigger llegara a dispararse dos veces para la misma fila
-    // (no debería, pero es una llamada barata de comprobar antes de gastar
-    // una consulta al modelo).
-    const { data: yaExiste } = await supabase
-      .from('radar_matches')
-      .select('reto_id')
-      .or(`reto_id.eq.${record.id},solucion_id.eq.${record.id}`)
-      .maybeSingle()
-    if (yaExiste) return new Response('ya tenía match', { status: 200 })
+  // Se piden más de las que hacen falta (LIMITE_CANDIDATAS de sobra) para
+  // poder descartar después las que ya tengan pareja y aun así quedarnos
+  // con el límite real completo.
+  const LIMITE_CANDIDATAS = 15
+  const { data: candidatasBrutas, error } = await supabase
+    .from('radar_respuestas')
+    .select('id, necesidad_oferta, areas')
+    .neq('id', fila.id)
+    .eq('tipo', esReto ? 'solucion' : 'reto')
+    .order('creado_en', { ascending: false })
+    .limit(LIMITE_CANDIDATAS * 3)
 
-    // Quién trae el reto y quién la solución ya no depende del perfil (una
-    // empresa también puede tener un reto) — depende de lo que la propia
-    // persona eligió en el formulario.
-    const esReto = record.tipo === 'reto'
-
-    // Se piden más de las que hacen falta (LIMITE_CANDIDATAS de sobra) para
-    // poder descartar después las que ya tengan pareja y aun así quedarnos
-    // con el límite real completo.
-    const LIMITE_CANDIDATAS = 15
-    const { data: candidatasBrutas, error } = await supabase
-      .from('radar_respuestas')
-      .select('id, necesidad_oferta, areas')
-      .neq('id', record.id)
-      .eq('tipo', esReto ? 'solucion' : 'reto')
-      .order('creado_en', { ascending: false })
-      .limit(LIMITE_CANDIDATAS * 3)
-
-    if (error) {
-      console.error('radar-match: error leyendo candidatas', error)
-      return new Response('error leyendo candidatas', { status: 500 })
-    }
-
-    // Todas las que todavía no tengan pareja — sin filtrar por área. El área
-    // es una casilla que marca la propia persona en el formulario, no
-    // siempre refleja bien el contenido real (dos respuestas que sí encajan
-    // pueden llevar áreas distintas, y al revés); decidirlo solo por
-    // contenido es cosa del modelo, no de una coincidencia de checkbox.
-    //
-    // El número de candidatas está acotado (LIMITE_CANDIDATAS, las más
-    // recientes primero) porque el coste en tokens de la llamada a Groq
-    // crece con la lista — probado en directo: sin límite, una avalancha de
-    // envíos simultáneos (donde ninguno tiene aún pareja) hacía que cada
-    // llamada llevara hasta 35 candidatas y costara 2500-3000 tokens en vez
-    // de los ~900-1300 de antes, agotando el cupo por minuto mucho antes.
-    // Limitarlo a las más recientes mantiene el coste por llamada estable
-    // sin apenas perder calidad — en un evento real, lo más probable es que
-    // la pareja de alguien esté entre quienes acaban de enviar también.
-    const { data: yaEmparejadas } = await supabase.from('radar_matches').select('reto_id, solucion_id')
-    const idsOcupados = new Set((yaEmparejadas ?? []).flatMap((m) => [m.reto_id, m.solucion_id]))
-    const candidatas = (candidatasBrutas ?? [])
-      .filter((c) => !idsOcupados.has(c.id))
-      .slice(0, LIMITE_CANDIDATAS)
-    if (candidatas.length === 0) return new Response('sin candidatas', { status: 200 })
-
-    // Una sola llamada, con todas las candidatas dentro — nunca una por
-    // candidata (ver el porqué en `preguntarAlModelo`).
-    const r = await preguntarAlModelo(record, candidatas, esReto)
-
-    // El plan B por palabras clave SOLO entra cuando el modelo no ha podido
-    // responder (cupo agotado en todas las claves tras reintentar). Si el
-    // modelo sí respondió y decidió que no había match, esa decisión no se
-    // pisa — 'sin_match' se queda tal cual, sin match.
-    let resultado: { candidataId: string; explicacion: string } | null = null
-    if (r.estado === 'match') {
-      resultado = { candidataId: r.candidataId, explicacion: r.explicacion }
-    } else if (r.estado === 'agotado') {
-      resultado = emparejarPorPalabrasClave(record, candidatas)
-    }
-
-    const matchFinal = resultado
-      ? esReto
-        ? { retoId: record.id, solucionId: resultado.candidataId, explicacion: resultado.explicacion }
-        : { retoId: resultado.candidataId, solucionId: record.id, explicacion: resultado.explicacion }
-      : null
-
-    if (!matchFinal) return new Response('sin match', { status: 200 })
-
-    const { error: errorInsert } = await supabase.from('radar_matches').insert({
-      reto_id: matchFinal.retoId,
-      solucion_id: matchFinal.solucionId,
-      explicacion: matchFinal.explicacion,
-    })
-    if (errorInsert) {
-      // Conflicto de clave (alguien más ya lo emparejó mientras tanto) no es
-      // un fallo real — es exactamente la garantía 1:1 haciendo su trabajo.
-      if (errorInsert.code !== '23505') {
-        console.error('radar-match: error guardando el match', errorInsert)
-        return new Response('error guardando el match', { status: 500 })
-      }
-    }
-
-    return new Response('match guardado', { status: 200 })
-  } catch (err) {
-    console.error('radar-match: error inesperado', err)
-    return new Response('error inesperado', { status: 500 })
+  if (error) {
+    console.error('radar-match: error leyendo candidatas', error)
+    return
   }
+
+  // Todas las que todavía no tengan pareja — sin filtrar por área. El área
+  // es una casilla que marca la propia persona en el formulario, no
+  // siempre refleja bien el contenido real; decidirlo solo por contenido
+  // es cosa del modelo, no de una coincidencia de checkbox.
+  //
+  // El número de candidatas está acotado (LIMITE_CANDIDATAS, las más
+  // recientes primero) porque el coste en tokens de la llamada a Groq
+  // crece con la lista — probado en directo: sin límite, con muchas
+  // respuestas sin pareja aún, una sola llamada podía llevar hasta 35
+  // candidatas y costar 2500-3000 tokens en vez de los ~900-1300 de antes.
+  const { data: yaEmparejadas } = await supabase.from('radar_matches').select('reto_id, solucion_id')
+  const idsOcupados = new Set((yaEmparejadas ?? []).flatMap((m) => [m.reto_id, m.solucion_id]))
+  const candidatas = (candidatasBrutas ?? [])
+    .filter((c) => !idsOcupados.has(c.id))
+    .slice(0, LIMITE_CANDIDATAS)
+  if (candidatas.length === 0) return
+
+  const r = await preguntarAlModelo(fila, candidatas, esReto)
+  if (!r) return
+
+  const matchFinal = esReto
+    ? { reto_id: fila.id, solucion_id: r.candidataId, explicacion: r.explicacion }
+    : { reto_id: r.candidataId, solucion_id: fila.id, explicacion: r.explicacion }
+
+  const { error: errorInsert } = await supabase.from('radar_matches').insert(matchFinal)
+  if (errorInsert && errorInsert.code !== '23505') {
+    // 23505 (conflicto de clave) no es un fallo real — es la garantía 1:1
+    // haciendo su trabajo, por si acaso esta fila se emparejó por otra vía
+    // mientras tanto.
+    console.error('radar-match: error guardando el match', errorInsert)
+  }
+}
+
+// Tope de tiempo por invocación: hay que dejar margen de sobra respecto al
+// límite de ejecución de una Edge Function (unos minutos) para poder
+// liberar el turno con calma antes de que la plataforma corte en seco. Si
+// queda cola por procesar al llegar a este tope, la siguiente invocación
+// (el próximo envío, o el aviso de pg_cron del minuto siguiente) continúa
+// justo donde se quedó — nada se pierde, solo se reparte en más de una
+// tanda.
+const TIEMPO_MAXIMO_MS = 100_000
+
+Deno.serve(async (_req) => {
+  // Un único trabajador a la vez: si el turno ya lo tiene otra invocación
+  // (un envío casi simultáneo, o el aviso de pg_cron solapándose), esta
+  // sale sin hacer nada — quien tiene el turno ya se encargará de toda la
+  // cola, incluida esta respuesta, en su propio turno de reclamar.
+  const { data: turnoConseguido, error: errorTurno } = await supabase.rpc('radar_tomar_turno')
+  if (errorTurno) {
+    console.error('radar-match: error al pedir el turno', errorTurno)
+    return new Response('error al pedir el turno', { status: 500 })
+  }
+  if (!turnoConseguido) {
+    return new Response('turno ocupado, nada que hacer', { status: 200 })
+  }
+
+  const inicio = Date.now()
+  let procesadas = 0
+  try {
+    while (Date.now() - inicio < TIEMPO_MAXIMO_MS) {
+      const { data: fila, error: errorReclamar } = await supabase.rpc('radar_reclamar_siguiente')
+      if (errorReclamar) {
+        console.error('radar-match: error reclamando de la cola', errorReclamar)
+        break
+      }
+      if (!fila || !fila.id) break // cola vacía
+
+      await procesarUna(fila)
+      procesadas++
+    }
+  } finally {
+    const { error: errorLiberar } = await supabase.rpc('radar_liberar_turno')
+    if (errorLiberar) console.error('radar-match: error liberando el turno', errorLiberar)
+  }
+
+  return new Response(`cola procesada: ${procesadas}`, { status: 200 })
 })
