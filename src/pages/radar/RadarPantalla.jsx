@@ -63,26 +63,37 @@ export default function RadarPantalla() {
     [matches, vistos],
   )
 
-  // Qué lista recorren las flechas: en modo pendientes, solo los matches
-  // sin comentar (como antes); si no, todas las respuestas, en orden de
-  // llegada — así las flechas también sirven al abrir una tarjeta
-  // cualquiera desde el mapa, no solo desde el carrusel de pendientes.
-  const idsNavegables = useMemo(() => {
-    if (modoPendientes) return pendientes.map((p) => p.reto_id)
-    return [...filas].sort((a, b) => new Date(a.creado_en) - new Date(b.creado_en)).map((f) => f.id)
-  }, [modoPendientes, pendientes, filas])
+  // Qué lista recorren las flechas: siempre de relación en relación, nunca
+  // nodo a nodo — pasar de un lado de una pareja al otro no tiene sentido
+  // (es la misma relación, ya se ve entera en el panel), y una tarjeta
+  // suelta sin match tampoco interesa presentarla en el recorrido
+  // automático: quien quiera verla la busca o le hace clic directamente,
+  // pero las flechas solo saltan entre relaciones. En modo pendientes,
+  // solo las que aún no se han comentado; si no, todas.
+  const paresNavegables = useMemo(() => {
+    const base = modoPendientes ? pendientes : matches
+    return [...base].sort((a, b) => new Date(a.creado_en) - new Date(b.creado_en))
+  }, [modoPendientes, pendientes, matches])
+
+  // La posición actual dentro de esa lista — se busca por CUALQUIERA de
+  // los dos lados de la pareja (reto o solución), porque se puede haber
+  // enfocado directamente el lado solución y aun así pertenece a la misma
+  // relación.
+  const posicionActual = paresNavegables.findIndex(
+    (p) => p.reto_id === idEnfocado || p.solucion_id === idEnfocado,
+  )
 
   const irA = (delta) => {
-    const total = idsNavegables.length
+    const total = paresNavegables.length
     if (total === 0) return
-    const posActual = idsNavegables.indexOf(idEnfocado)
-    // Si la tarjeta que se estaba viendo ya no está en la lista (p. ej. se
+    // Si la relación que se estaba viendo ya no está en la lista (p. ej. se
     // acaba de marcar como comentada y modo pendientes la quitó de en
-    // medio), se continúa desde el principio de la lista ya actualizada,
-    // no desde una posición que ya no existe.
-    const base = posActual === -1 ? -1 : posActual
-    const siguiente = idsNavegables[((base + delta) % total + total) % total]
-    graphRef.current?.enfocar(siguiente)
+    // medio), o se enfocó algo que no pertenece a ninguna relación, se
+    // continúa desde el principio de la lista, no desde una posición que
+    // no existe.
+    const base = posicionActual === -1 ? -1 : posicionActual
+    const siguiente = paresNavegables[((base + delta) % total + total) % total]
+    graphRef.current?.enfocar(siguiente.reto_id)
   }
 
   const cerrarFoco = () => {
@@ -112,7 +123,7 @@ export default function RadarPantalla() {
     window.addEventListener('keydown', alTeclado)
     return () => window.removeEventListener('keydown', alTeclado)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idEnfocado, idsNavegables])
+  }, [idEnfocado, paresNavegables])
 
   // Buscador por institución/organización (o por perfil) — para cuando
   // alguien dice que no ha visto la suya: se teclea el nombre y se enfoca
@@ -309,8 +320,8 @@ export default function RadarPantalla() {
             <button
               type="button"
               onClick={() => irA(-1)}
-              disabled={idsNavegables.length <= 1}
-              aria-label="Anterior"
+              disabled={paresNavegables.length <= 1}
+              aria-label="Relación anterior"
               className="press grid h-11 w-11 place-items-center rounded-full text-[1.2rem] font-bold text-white hover:bg-white/10 disabled:opacity-30"
             >
               ‹
@@ -320,13 +331,17 @@ export default function RadarPantalla() {
                 ? pendientes.length === 0
                   ? 'Todo comentado 🎉'
                   : `${pendientes.length} pendiente${pendientes.length === 1 ? '' : 's'}`
-                : `${Math.max(0, idsNavegables.indexOf(idEnfocado)) + 1} de ${idsNavegables.length}`}
+                : paresNavegables.length === 0
+                  ? 'Sin relaciones aún'
+                  : posicionActual === -1
+                    ? `${paresNavegables.length} relación${paresNavegables.length === 1 ? '' : 'es'}`
+                    : `Relación ${posicionActual + 1} de ${paresNavegables.length}`}
             </span>
             <button
               type="button"
               onClick={() => irA(1)}
-              disabled={idsNavegables.length <= 1}
-              aria-label="Siguiente"
+              disabled={paresNavegables.length <= 1}
+              aria-label="Siguiente relación"
               className="press grid h-11 w-11 place-items-center rounded-full text-[1.2rem] font-bold text-white hover:bg-white/10 disabled:opacity-30"
             >
               ›
