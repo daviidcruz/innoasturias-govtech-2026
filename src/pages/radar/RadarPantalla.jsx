@@ -241,12 +241,12 @@ export default function RadarPantalla() {
           tabIndex={0}
           onClick={() => setMostrarBuscador(false)}
           onKeyDown={(e) => e.key === 'Escape' && setMostrarBuscador(false)}
-          className="fixed inset-0 z-50 grid cursor-pointer place-items-start justify-center bg-ink/90 px-6 pt-24 backdrop-blur-sm sm:pt-32"
+          className="fixed inset-0 z-50 flex cursor-pointer justify-center bg-ink/90 px-6 pt-24 backdrop-blur-sm sm:pt-32"
         >
           <div
             role="presentation"
             onClick={(e) => e.stopPropagation()}
-            className="glass-1 w-full max-w-xl cursor-default rounded-plate p-6 sm:p-8"
+            className="glass-1 h-fit w-full max-w-3xl cursor-default rounded-plate p-6 sm:p-8"
           >
             <p className="text-[0.75rem] font-bold uppercase tracking-[0.2em] text-blush">
               Buscar por institución
