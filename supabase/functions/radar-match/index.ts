@@ -16,6 +16,11 @@
 // abajo) para cuando la primera se quede sin cupo de tokens en plena
 // avalancha de envíos. SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY los
 // inyecta el propio runtime de Supabase, no hace falta configurarlos.
+//
+// Si Groq se queda sin cupo en TODAS las claves después de agotar los
+// reintentos, hay un plan B determinista por palabras clave
+// (`emparejarPorPalabrasClave`) — nunca sustituye una decisión real del
+// modelo, solo entra cuando el modelo no ha podido responder.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 
@@ -45,6 +50,119 @@ function obtenerClaves(): string[] {
 
 const esperar = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
+// --- Plan B: emparejar por palabras clave cuando Groq no responde ---
+//
+// Solo se usa cuando el modelo se ha quedado sin cupo en TODAS las claves
+// después de reintentar (ver `preguntarAlModelo`) — nunca cuando el modelo
+// SÍ ha respondido y ha decidido que no hay match; esa decisión no se pisa,
+// solo se sustituye la ausencia de respuesta.
+//
+// Es deliberadamente exigente porque no hay ningún razonamiento detrás,
+// solo comparación de palabras: exige varias palabras clave compartidas
+// (nunca solo una) y descarta parejas cuyo verbo principal es opuesto — la
+// trampa que se quería evitar es justo esta: "crear un coche" y "destruir
+// un coche" comparten "coche" pero no tienen nada que ver.
+
+const PALABRAS_VACIAS = new Set([
+  'a', 'ante', 'bajo', 'con', 'contra', 'de', 'desde', 'en', 'entre', 'hacia', 'hasta', 'para', 'por',
+  'segun', 'sin', 'sobre', 'tras', 'el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'lo', 'al', 'del',
+  'y', 'o', 'u', 'e', 'pero', 'sino', 'que', 'como', 'si', 'porque', 'pues', 'cuando', 'donde',
+  'mi', 'mis', 'tu', 'tus', 'su', 'sus', 'nuestro', 'nuestra', 'nuestros', 'nuestras', 'vuestro', 'vuestra',
+  'este', 'esta', 'estos', 'estas', 'ese', 'esa', 'esos', 'esas', 'aquel', 'aquella', 'aquellos', 'aquellas',
+  'yo', 'ella', 'nosotros', 'vosotros', 'ellos', 'ellas', 'nos', 'os', 'se', 'le', 'les', 'me', 'te',
+  'muy', 'mas', 'menos', 'tan', 'tanto', 'solo', 'tambien', 'tampoco', 'ya', 'aun', 'todavia',
+  'es', 'son', 'ser', 'estar', 'estan', 'soy', 'eres', 'somos', 'sois', 'hay', 'tiene', 'tener', 'tenemos',
+  'no', 'si', 'ni', 'algo', 'alguna', 'algunas', 'alguno', 'algunos', 'cada', 'todo', 'toda', 'todos', 'todas',
+  'otro', 'otra', 'otros', 'otras', 'uno', 'para', 'poder', 'puede', 'podemos', 'sobre',
+])
+
+// Pares de verbos con sentido opuesto — si un lado usa uno y el otro su
+// pareja, el parecido léxico es engañoso y no debe unir aunque compartan
+// otras palabras (el sustantivo del ejemplo, "coche").
+const VERBOS_OPUESTOS: [string, string][] = [
+  ['crear', 'destruir'], ['crear', 'eliminar'], ['crear', 'borrar'], ['crear', 'quitar'],
+  ['construir', 'demoler'], ['construir', 'derribar'],
+  ['limpiar', 'ensuciar'], ['limpiar', 'contaminar'],
+  ['proteger', 'exponer'], ['proteger', 'vulnerar'], ['proteger', 'filtrar'],
+  ['aumentar', 'reducir'], ['aumentar', 'disminuir'], ['incrementar', 'reducir'], ['ampliar', 'reducir'],
+  ['mejorar', 'empeorar'],
+  ['abrir', 'cerrar'],
+  ['contratar', 'despedir'],
+  ['comprar', 'vender'],
+  ['instalar', 'desinstalar'], ['instalar', 'retirar'], ['instalar', 'desmontar'],
+  ['activar', 'desactivar'],
+  ['subir', 'bajar'],
+  ['incluir', 'excluir'],
+  ['unir', 'separar'], ['conectar', 'desconectar'],
+  ['iniciar', 'detener'], ['empezar', 'terminar'], ['arrancar', 'parar'],
+  ['centralizar', 'descentralizar'],
+  ['ocultar', 'revelar'], ['ocultar', 'publicar'],
+  ['acelerar', 'frenar'],
+]
+
+/** Recorta una palabra a 6 letras — forma barata de que "anonimizar" y
+ *  "anonimización", o un singular y su plural, cuenten como la misma
+ *  palabra clave sin necesidad de un analizador morfológico de verdad. */
+function raiz(palabra: string): string {
+  return palabra.length > 6 ? palabra.slice(0, 6) : palabra
+}
+
+/** Quita tildes y signos, pasa a minúsculas y trocea en palabras. */
+function normalizarTexto(texto: string): string[] {
+  return texto
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+}
+
+/** Palabras clave de un texto: sin palabras vacías, sin las muy cortas, ya
+ *  recortadas a su raíz aproximada. */
+function palabrasClave(texto: string): Set<string> {
+  return new Set(
+    normalizarTexto(texto)
+      .filter((p) => p.length > 2 && !PALABRAS_VACIAS.has(p))
+      .map(raiz),
+  )
+}
+
+function tieneVerbosOpuestos(a: Set<string>, b: Set<string>): boolean {
+  return VERBOS_OPUESTOS.some(
+    ([x, y]) => (a.has(raiz(x)) && b.has(raiz(y))) || (a.has(raiz(y)) && b.has(raiz(x))),
+  )
+}
+
+function emparejarPorPalabrasClave(central: any, candidatos: any[]) {
+  const palabrasCentral = palabrasClave(central.necesidad_oferta)
+  if (palabrasCentral.size === 0) return null
+
+  let mejor: { candidata: any; comunes: string[]; ratio: number } | null = null
+
+  for (const candidata of candidatos) {
+    const palabrasCand = palabrasClave(candidata.necesidad_oferta)
+    if (palabrasCand.size === 0) continue
+    if (tieneVerbosOpuestos(palabrasCentral, palabrasCand)) continue
+
+    const comunes = [...palabrasCentral].filter((p) => palabrasCand.has(p))
+    const ratio = comunes.length / Math.min(palabrasCentral.size, palabrasCand.size)
+
+    // Al menos dos palabras clave compartidas, y que sean buena parte del
+    // texto más corto de los dos — una sola palabra suelta (p.ej. "datos")
+    // no basta, sería la misma trampa que se quiso evitar desde el principio.
+    if (comunes.length < 2 || ratio < 0.3) continue
+
+    if (!mejor || ratio > mejor.ratio) mejor = { candidata, comunes, ratio }
+  }
+
+  if (!mejor) return null
+  return {
+    candidataId: mejor.candidata.id,
+    explicacion: `Coinciden en varios términos (${mejor.comunes.slice(0, 3).join(', ')}) — emparejado por palabras clave porque el modelo no pudo responder a tiempo.`,
+  }
+}
+
 /**
  * Una sola llamada al modelo por respuesta nueva, venga de donde venga —
  * nunca una por cada candidata. Con la clave actual (8000 tokens/minuto,
@@ -55,11 +173,20 @@ const esperar = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms)
  * una vez, y elige como mucho una — el elemento fijo (`central`) hace de
  * reto o de solución según `centralEsReto`, y el prompt se redacta acorde.
  */
-async function preguntarAlModelo(central: any, candidatos: any[], centralEsReto: boolean) {
+type ResultadoModelo =
+  | { estado: 'match'; candidataId: string; explicacion: string }
+  | { estado: 'sin_match' }
+  | { estado: 'agotado' }
+
+async function preguntarAlModelo(
+  central: any,
+  candidatos: any[],
+  centralEsReto: boolean,
+): Promise<ResultadoModelo> {
   const claves = obtenerClaves()
   if (claves.length === 0) {
     console.error('radar-match: falta el secret GROQ_API_KEY')
-    return null
+    return { estado: 'agotado' }
   }
 
   const lista = candidatos
@@ -149,19 +276,19 @@ Si ninguna encaja ni siquiera de forma indirecta y coherente, responde exactamen
 
   if (!resp || !resp.ok) {
     console.error('radar-match: Groq respondió', resp?.status, await resp?.text())
-    return null
+    return { estado: 'agotado' }
   }
 
   const data = await resp.json()
   try {
     const contenido = JSON.parse(data.choices[0].message.content)
-    if (!contenido.id) return null
+    if (!contenido.id) return { estado: 'sin_match' }
     const candidata = candidatos.find((c) => c.id === contenido.id)
-    if (!candidata || !contenido.explicacion) return null
-    return { candidataId: candidata.id, explicacion: String(contenido.explicacion) }
+    if (!candidata || !contenido.explicacion) return { estado: 'sin_match' }
+    return { estado: 'match', candidataId: candidata.id, explicacion: String(contenido.explicacion) }
   } catch (err) {
     console.error('radar-match: no se pudo interpretar la respuesta del modelo', err, data)
-    return null
+    return { estado: 'agotado' }
   }
 }
 
@@ -229,10 +356,22 @@ Deno.serve(async (req) => {
     // Una sola llamada, con todas las candidatas dentro — nunca una por
     // candidata (ver el porqué en `preguntarAlModelo`).
     const r = await preguntarAlModelo(record, candidatas, esReto)
-    const matchFinal = r
+
+    // El plan B por palabras clave SOLO entra cuando el modelo no ha podido
+    // responder (cupo agotado en todas las claves tras reintentar). Si el
+    // modelo sí respondió y decidió que no había match, esa decisión no se
+    // pisa — 'sin_match' se queda tal cual, sin match.
+    let resultado: { candidataId: string; explicacion: string } | null = null
+    if (r.estado === 'match') {
+      resultado = { candidataId: r.candidataId, explicacion: r.explicacion }
+    } else if (r.estado === 'agotado') {
+      resultado = emparejarPorPalabrasClave(record, candidatas)
+    }
+
+    const matchFinal = resultado
       ? esReto
-        ? { retoId: record.id, solucionId: r.candidataId, explicacion: r.explicacion }
-        : { retoId: r.candidataId, solucionId: record.id, explicacion: r.explicacion }
+        ? { retoId: record.id, solucionId: resultado.candidataId, explicacion: resultado.explicacion }
+        : { retoId: resultado.candidataId, solucionId: record.id, explicacion: resultado.explicacion }
       : null
 
     if (!matchFinal) return new Response('sin match', { status: 200 })
