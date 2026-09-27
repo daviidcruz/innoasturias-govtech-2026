@@ -1,8 +1,8 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { supabase } from '../../lib/supabase.js'
 import { PERFILES, etiquetaNodo, esReto } from '../../data/radar.js'
+import { useMatches, useVistos } from './useRadarEstado.js'
 
 const COLOR_MATCH = 'var(--color-mint)'
 const COLOR_RETO = 'var(--color-coral)'
@@ -759,45 +759,14 @@ const ZOOM_MAX_REL = 3
  * se queda sola. Las coordenadas de los hilos se miden de verdad sobre el
  * DOM ya colocado, así que siguen a sus tarjetas sea cual sea el zoom.
  */
-export default function RadarGraph({ filas, reciente, llenarAltura = false, modo = 'libre' }) {
+const RadarGraph = forwardRef(function RadarGraph({ filas, reciente, llenarAltura = false, modo = 'libre' }, ref) {
   // Los matches ya no se calculan aquí por área compartida — los decide
   // una Edge Function (`radar-match`) con un modelo de lenguaje en cuanto
   // llega cada respuesta nueva, y quedan guardados en `radar_matches` junto
-  // con una frase explicando por qué encajan de verdad. Este componente
-  // solo los lee (y escucha en directo los que vayan llegando), igual que
-  // ya hace con `radar_vistos`.
-  const [matches, setMatches] = useState([])
-
-  useEffect(() => {
-    let activo = true
-    supabase
-      .from('radar_matches')
-      .select('reto_id, solucion_id, explicacion')
-      .then(({ data, error }) => {
-        if (!activo) return
-        if (error) {
-          console.error('Radar: error al cargar los matches', error)
-          return
-        }
-        setMatches(data ?? [])
-      })
-
-    const canal = supabase
-      .channel('radar_matches_en_vivo')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'radar_matches' },
-        (payload) => {
-          setMatches((prev) => (prev.some((m) => m.reto_id === payload.new.reto_id) ? prev : [...prev, payload.new]))
-        },
-      )
-      .subscribe()
-
-    return () => {
-      activo = false
-      supabase.removeChannel(canal)
-    }
-  }, [])
+  // con una frase explicando por qué encajan de verdad. El hook compartido
+  // (`useRadarEstado`) los carga y los escucha en directo — compartido con
+  // `RadarPantalla`, que los necesita para el carrusel de pendientes.
+  const matches = useMatches()
 
   const pares = useMemo(() => matches.map((m) => ({ reto: m.reto_id, solucion: m.solucion_id })), [matches])
   const emparejadas = useMemo(() => new Set(matches.flatMap((m) => [m.reto_id, m.solucion_id])), [matches])
@@ -820,41 +789,11 @@ export default function RadarGraph({ filas, reciente, llenarAltura = false, modo
   // Qué tarjetas se han comentado ya en directo — persistido en Supabase
   // (tabla `radar_vistos`), no en `radar_respuestas`: esa tabla se dejó
   // explícitamente sin permiso de editar ni borrar, así que el marcador
-  // vive aparte, en su propia tabla de solo-insertar. Se carga al entrar y
-  // se escucha en directo, así que sobrevive a recargar la pantalla y, si
-  // hay más de una pantalla abierta a la vez, se comparte entre todas.
-  const [vistos, setVistos] = useState(() => new Set())
-
-  useEffect(() => {
-    let activo = true
-    supabase
-      .from('radar_vistos')
-      .select('respuesta_id')
-      .then(({ data, error }) => {
-        if (!activo) return
-        if (error) {
-          console.error('Radar: error al cargar lo ya comentado', error)
-          return
-        }
-        setVistos(new Set((data ?? []).map((r) => r.respuesta_id)))
-      })
-
-    const canal = supabase
-      .channel('radar_vistos_en_vivo')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'radar_vistos' },
-        (payload) => {
-          setVistos((prev) => (prev.has(payload.new.respuesta_id) ? prev : new Set(prev).add(payload.new.respuesta_id)))
-        },
-      )
-      .subscribe()
-
-    return () => {
-      activo = false
-      supabase.removeChannel(canal)
-    }
-  }, [])
+  // vive aparte, en su propia tabla de solo-insertar. El hook compartido se
+  // carga al entrar y escucha en directo, así que sobrevive a recargar la
+  // pantalla y, si hay más de una pantalla abierta a la vez (o el carrusel
+  // de pendientes de `RadarPantalla`), se comparte entre todas.
+  const { vistos, marcar: marcarVistos } = useVistos()
 
   // Con qué otras tarjetas conecta cada una — para saber, al hacer foco en
   // una, cuáles más se quedan nítidas y cuáles se listan en el panel.
@@ -879,25 +818,16 @@ export default function RadarGraph({ filas, reciente, llenarAltura = false, modo
   const abrirFoco = (id) => {
     setFoco(id)
     const relacionadas = [...(relacionadosPorId.get(id) ?? [])]
-    const nuevos = [id, ...relacionadas].filter((n) => !vistos.has(n))
-    if (nuevos.length === 0) return
-
-    setVistos((prev) => {
-      const siguiente = new Set(prev)
-      nuevos.forEach((n) => siguiente.add(n))
-      return siguiente
-    })
-
-    supabase
-      .from('radar_vistos')
-      .upsert(
-        nuevos.map((respuesta_id) => ({ respuesta_id })),
-        { onConflict: 'respuesta_id', ignoreDuplicates: true },
-      )
-      .then(({ error }) => {
-        if (error) console.error('Radar: error al marcar como comentado', error)
-      })
+    marcarVistos([id, ...relacionadas])
   }
+
+  // API imperativa para quien controle este mapa desde fuera (el carrusel
+  // de "pendientes" y el buscador de `RadarPantalla`): enfocar una tarjeta
+  // por id, tal cual si se hubiera hecho clic en ella, y cerrar el foco.
+  useImperativeHandle(ref, () => ({
+    enfocar: abrirFoco,
+    cerrar: () => setFoco(null),
+  }))
 
   const activos = useMemo(() => {
     if (!foco) return null
@@ -1251,4 +1181,6 @@ export default function RadarGraph({ filas, reciente, llenarAltura = false, modo
       )}
     </div>
   )
-}
+})
+
+export default RadarGraph
