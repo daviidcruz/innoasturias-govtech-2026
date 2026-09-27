@@ -43,7 +43,12 @@ export default function RadarPantalla() {
   const { vistos } = useVistos()
 
   const [modoPendientes, setModoPendientes] = useState(false)
-  const [idPendienteActual, setIdPendienteActual] = useState(null)
+  // La tarjeta enfocada ahora mismo, la abra quien la abra — un clic
+  // directo en el mapa, el buscador o el carrusel de pendientes. La avisa
+  // `RadarGraph` (prop `onFocoCambia`), así que las flechas de
+  // siguiente/anterior pueden aparecer también en un foco "normal", no
+  // solo durante el carrusel de pendientes.
+  const [idEnfocado, setIdEnfocado] = useState(null)
 
   // Solo los matches donde AL MENOS uno de los dos lados sigue sin
   // comentar — en cuanto se hace foco en un par, las dos tarjetas quedan
@@ -58,45 +63,56 @@ export default function RadarPantalla() {
     [matches, vistos],
   )
 
-  const irAPendiente = (delta) => {
-    if (pendientes.length === 0) return
-    const posActual = pendientes.findIndex((p) => p.reto_id === idPendienteActual)
-    // Si el par que se estaba viendo ya no está en la lista (se acaba de
-    // marcar como comentado al enfocarlo), se continúa desde el principio
-    // de la lista ya actualizada, no desde una posición que ya no existe.
+  // Qué lista recorren las flechas: en modo pendientes, solo los matches
+  // sin comentar (como antes); si no, todas las respuestas, en orden de
+  // llegada — así las flechas también sirven al abrir una tarjeta
+  // cualquiera desde el mapa, no solo desde el carrusel de pendientes.
+  const idsNavegables = useMemo(() => {
+    if (modoPendientes) return pendientes.map((p) => p.reto_id)
+    return [...filas].sort((a, b) => new Date(a.creado_en) - new Date(b.creado_en)).map((f) => f.id)
+  }, [modoPendientes, pendientes, filas])
+
+  const irA = (delta) => {
+    const total = idsNavegables.length
+    if (total === 0) return
+    const posActual = idsNavegables.indexOf(idEnfocado)
+    // Si la tarjeta que se estaba viendo ya no está en la lista (p. ej. se
+    // acaba de marcar como comentada y modo pendientes la quitó de en
+    // medio), se continúa desde el principio de la lista ya actualizada,
+    // no desde una posición que ya no existe.
     const base = posActual === -1 ? -1 : posActual
-    const total = pendientes.length
-    const siguiente = pendientes[((base + delta) % total + total) % total]
-    setIdPendienteActual(siguiente.reto_id)
-    graphRef.current?.enfocar(siguiente.reto_id)
+    const siguiente = idsNavegables[((base + delta) % total + total) % total]
+    graphRef.current?.enfocar(siguiente)
+  }
+
+  const cerrarFoco = () => {
+    graphRef.current?.cerrar()
+    setModoPendientes(false)
   }
 
   const alternarPendientes = () => {
     if (modoPendientes) {
-      setModoPendientes(false)
-      graphRef.current?.cerrar()
+      cerrarFoco()
       return
     }
     setModoPendientes(true)
-    if (pendientes.length > 0) {
-      setIdPendienteActual(pendientes[0].reto_id)
-      graphRef.current?.enfocar(pendientes[0].reto_id)
-    }
+    if (pendientes.length > 0) graphRef.current?.enfocar(pendientes[0].reto_id)
   }
 
   // Con un mando/clicker de presentación (que suele enviar las flechas del
-  // teclado) se puede pasar de pendiente sin tener que apuntar con el ratón.
+  // teclado) se puede pasar de tarjeta sin tener que apuntar con el ratón —
+  // tanto si se está repasando pendientes como si se abrió una cualquiera.
   useEffect(() => {
-    if (!modoPendientes) return
+    if (!idEnfocado) return
     const alTeclado = (e) => {
-      if (e.key === 'ArrowRight') irAPendiente(1)
-      else if (e.key === 'ArrowLeft') irAPendiente(-1)
-      else if (e.key === 'Escape') alternarPendientes()
+      if (e.key === 'ArrowRight') irA(1)
+      else if (e.key === 'ArrowLeft') irA(-1)
+      else if (e.key === 'Escape') cerrarFoco()
     }
     window.addEventListener('keydown', alTeclado)
     return () => window.removeEventListener('keydown', alTeclado)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modoPendientes, pendientes, idPendienteActual])
+  }, [idEnfocado, idsNavegables])
 
   // Buscador por institución/organización (o por perfil) — para cuando
   // alguien dice que no ha visto la suya: se teclea el nombre y se enfoca
@@ -287,26 +303,30 @@ export default function RadarPantalla() {
         </div>
       )}
 
-      {modoPendientes && (
+      {idEnfocado && (
         <div className="fixed bottom-6 left-1/2 z-[60] flex -translate-x-1/2 items-center gap-1 rounded-full">
           <div className="glass-1 flex items-center gap-1 rounded-full p-1.5">
             <button
               type="button"
-              onClick={() => irAPendiente(-1)}
-              disabled={pendientes.length === 0}
-              aria-label="Pendiente anterior"
+              onClick={() => irA(-1)}
+              disabled={idsNavegables.length <= 1}
+              aria-label="Anterior"
               className="press grid h-11 w-11 place-items-center rounded-full text-[1.2rem] font-bold text-white hover:bg-white/10 disabled:opacity-30"
             >
               ‹
             </button>
             <span className="tnum px-3 text-[0.875rem] font-bold text-white">
-              {pendientes.length === 0 ? 'Todo comentado 🎉' : `${pendientes.length} pendiente${pendientes.length === 1 ? '' : 's'}`}
+              {modoPendientes
+                ? pendientes.length === 0
+                  ? 'Todo comentado 🎉'
+                  : `${pendientes.length} pendiente${pendientes.length === 1 ? '' : 's'}`
+                : `${Math.max(0, idsNavegables.indexOf(idEnfocado)) + 1} de ${idsNavegables.length}`}
             </span>
             <button
               type="button"
-              onClick={() => irAPendiente(1)}
-              disabled={pendientes.length === 0}
-              aria-label="Siguiente pendiente"
+              onClick={() => irA(1)}
+              disabled={idsNavegables.length <= 1}
+              aria-label="Siguiente"
               className="press grid h-11 w-11 place-items-center rounded-full text-[1.2rem] font-bold text-white hover:bg-white/10 disabled:opacity-30"
             >
               ›
@@ -314,8 +334,8 @@ export default function RadarPantalla() {
             <span className="mx-1 h-6 w-px bg-white/15" aria-hidden="true" />
             <button
               type="button"
-              onClick={alternarPendientes}
-              aria-label="Cerrar carrusel de pendientes"
+              onClick={cerrarFoco}
+              aria-label="Cerrar"
               className="press grid h-11 w-11 place-items-center rounded-full text-white/70 hover:bg-white/10 hover:text-white"
             >
               ✕
@@ -388,7 +408,7 @@ export default function RadarPantalla() {
             Esperando la primera respuesta — escanea el código QR para participar.
           </p>
         ) : (
-          <RadarGraph ref={graphRef} filas={filas} reciente={reciente} llenarAltura />
+          <RadarGraph ref={graphRef} filas={filas} reciente={reciente} llenarAltura onFocoCambia={setIdEnfocado} />
         )}
       </div>
     </div>

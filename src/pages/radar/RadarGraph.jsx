@@ -759,7 +759,10 @@ const ZOOM_MAX_REL = 3
  * se queda sola. Las coordenadas de los hilos se miden de verdad sobre el
  * DOM ya colocado, así que siguen a sus tarjetas sea cual sea el zoom.
  */
-const RadarGraph = forwardRef(function RadarGraph({ filas, reciente, llenarAltura = false, modo = 'libre' }, ref) {
+const RadarGraph = forwardRef(function RadarGraph(
+  { filas, reciente, llenarAltura = false, modo = 'libre', onFocoCambia },
+  ref,
+) {
   // Los matches ya no se calculan aquí por área compartida — los decide
   // una Edge Function (`radar-match`) con un modelo de lenguaje en cuanto
   // llega cada respuesta nueva, y quedan guardados en `radar_matches` junto
@@ -828,6 +831,16 @@ const RadarGraph = forwardRef(function RadarGraph({ filas, reciente, llenarAltur
     enfocar: abrirFoco,
     cerrar: () => setFoco(null),
   }))
+
+  // Avisa hacia fuera de cada cambio de foco — no solo los que provoca el
+  // propio `RadarPantalla` (buscador, carrusel), también un clic directo en
+  // una tarjeta del mapa. Así las flechas de "siguiente/anterior" pueden
+  // aparecer también al abrir una tarjeta normal, no solo desde el carrusel
+  // de pendientes.
+  useEffect(() => {
+    onFocoCambia?.(foco)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [foco])
 
   const activos = useMemo(() => {
     if (!foco) return null
