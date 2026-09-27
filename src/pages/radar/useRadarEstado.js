@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { supabase } from '../../lib/supabase.js'
 
 /**
@@ -10,6 +10,13 @@ import { supabase } from '../../lib/supabase.js'
  */
 export function useMatches() {
   const [matches, setMatches] = useState([])
+  // Un nombre de canal fijo revienta en cuanto dos instancias de este hook
+  // conviven a la vez (RadarGraph y RadarPantalla, por ejemplo): Supabase no
+  // deja suscribirse dos veces al mismo nombre de canal y lanza una
+  // excepción que tira toda la pantalla en negro — probado en directo. Cada
+  // instancia necesita su propio nombre, aunque las dos acaben escuchando
+  // la misma tabla.
+  const idInstancia = useId()
 
   useEffect(() => {
     let activo = true
@@ -26,7 +33,7 @@ export function useMatches() {
       })
 
     const canal = supabase
-      .channel('radar_matches_en_vivo')
+      .channel(`radar_matches_en_vivo_${idInstancia}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'radar_matches' },
@@ -54,6 +61,8 @@ export function useMatches() {
  */
 export function useVistos() {
   const [vistos, setVistos] = useState(() => new Set())
+  // Mismo motivo que en `useMatches`: nombre de canal único por instancia.
+  const idInstancia = useId()
 
   useEffect(() => {
     let activo = true
@@ -70,7 +79,7 @@ export function useVistos() {
       })
 
     const canal = supabase
-      .channel('radar_vistos_en_vivo')
+      .channel(`radar_vistos_en_vivo_${idInstancia}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'radar_vistos' },
