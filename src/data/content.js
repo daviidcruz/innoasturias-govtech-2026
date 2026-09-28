@@ -277,4 +277,8 @@ export const colaboradores = [
   { src: '/brand/hiberus.png', alt: 'Hiberus' },
   { src: '/brand/clustertic.png', alt: 'Clúster TIC Asturias' },
   { src: '/brand/ceisia-uniovi.png', alt: 'CEISIA · Universidad de Oviedo' },
+  { src: '/brand/diputacion-bizkaia.png', alt: 'Diputación Foral de Bizkaia' },
+  { src: '/brand/tracasa-instrumental.png', alt: 'Tracasa Instrumental' },
+  { src: '/brand/fade.png', alt: 'FADE · Federación Asturiana de Empresarios' },
+  { src: '/brand/sekuens.png', alt: 'SEKUENS · Agencia de Ciencia, Competitividad Empresarial e Innovación del Principado de Asturias' },
 ]
