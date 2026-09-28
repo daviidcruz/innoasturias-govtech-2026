@@ -67,6 +67,11 @@ export const programa = [
         linkedin: 'https://www.linkedin.com/in/jose-manuel-ferreira/',
       },
       {
+        nombre: 'Judith Flórez Paredes',
+        cargo: 'Directora General de Empleo y Asuntos Laborales, Principado de Asturias',
+        foto: '/ponentes/judith-florez.jpg',
+      },
+      {
         nombre: 'Ángela Medrano',
         cargo: 'Periodista. Conductora y presentadora del evento.',
         foto: '/ponentes/angela-medrano.jpg',
