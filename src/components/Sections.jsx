@@ -399,7 +399,11 @@ export function Colaboran() {
     <Shell innerRef={ref} className="py-14 sm:py-20">
       <div data-reveal="lift" className="glass-2 glass-2--dim rounded-panel p-8 text-center sm:p-10">
         <p className="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-blush">Colaboran</p>
-        <div className="mt-7 flex flex-wrap items-center justify-center gap-x-10 gap-y-7">
+        {/* Cuadrícula fija de 4 columnas (2 filas de 4) en vez de flex-wrap:
+            así las columnas quedan alineadas de verdad en vez de reajustarse
+            según lo ancho que sea cada logo. Todos al mismo tamaño — nada de
+            excepciones por logo, para que pesen visualmente igual. */}
+        <div className="mt-7 grid grid-cols-2 items-center justify-items-center gap-x-10 gap-y-8 sm:grid-cols-4">
           {colaboradores.map((c) => (
             // brightness-0 invert: cada logo llega en su color de marca
             // (navy, teal, rojo…) — este filtro los deja en blanco puro,
@@ -408,7 +412,7 @@ export function Colaboran() {
               key={c.alt}
               src={c.src}
               alt={c.alt}
-              className={`w-auto brightness-0 invert ${c.alt === 'Hiberus' ? 'h-8 sm:h-9' : 'h-10 sm:h-12'}`}
+              className="h-10 w-auto max-w-[9.5rem] object-contain brightness-0 invert sm:h-12"
             />
           ))}
         </div>

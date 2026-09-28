@@ -16,11 +16,11 @@ export default function Home() {
       <Nav />
       <main>
         <Hero />
+        <Colaboran />
         <CuentaAtras />
         <Encuentro />
         <Jornada />
         <RadarSection />
-        <Colaboran />
       </main>
       <Footer />
     </>
