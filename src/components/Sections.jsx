@@ -401,8 +401,9 @@ export function Colaboran() {
         <p className="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-blush">Colaboran</p>
         {/* Cuadrícula fija de 4 columnas (2 filas de 4) en vez de flex-wrap:
             así las columnas quedan alineadas de verdad en vez de reajustarse
-            según lo ancho que sea cada logo. Todos al mismo tamaño — nada de
-            excepciones por logo, para que pesen visualmente igual. */}
+            según lo ancho que sea cada logo. Todos a la misma altura base —
+            Bizkaia sube un poco porque su marca (hoja + texto fino) pesa
+            visualmente menos que el resto a igual altura. */}
         <div className="mt-7 grid grid-cols-2 items-center justify-items-center gap-x-10 gap-y-8 sm:grid-cols-4">
           {colaboradores.map((c) => (
             // brightness-0 invert: cada logo llega en su color de marca
@@ -412,7 +413,9 @@ export function Colaboran() {
               key={c.alt}
               src={c.src}
               alt={c.alt}
-              className="h-10 w-auto max-w-[9.5rem] object-contain brightness-0 invert sm:h-12"
+              className={`w-auto max-w-[9.5rem] object-contain brightness-0 invert ${
+                c.alt === 'Diputación Foral de Bizkaia' ? 'h-12 sm:h-14' : 'h-10 sm:h-12'
+              }`}
             />
           ))}
         </div>
