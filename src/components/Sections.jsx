@@ -386,6 +386,37 @@ export function Radar() {
   )
 }
 
+/* -------------------------------- Colaboran -------------------------------- */
+
+/* Con ocho logos ya no cabían de refilón en la cabecera junto a "Organiza"
+   — quedaban diminutos y apretados. Sección propia, con su propio titular:
+   un poco de presencia (no tanta como "Organiza", que va arriba del todo),
+   pero legibles y con aire entre ellos. */
+export function Colaboran() {
+  const ref = useInView()
+
+  return (
+    <Shell innerRef={ref} className="py-14 sm:py-20">
+      <div data-reveal="lift" className="glass-2 glass-2--dim rounded-panel p-8 text-center sm:p-10">
+        <p className="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-blush">Colaboran</p>
+        <div className="mt-7 flex flex-wrap items-center justify-center gap-x-10 gap-y-7">
+          {colaboradores.map((c) => (
+            // brightness-0 invert: cada logo llega en su color de marca
+            // (navy, teal, rojo…) — este filtro los deja en blanco puro,
+            // igual que los de "Organiza", sin tocar el archivo original.
+            <img
+              key={c.alt}
+              src={c.src}
+              alt={c.alt}
+              className={`w-auto brightness-0 invert ${c.alt === 'Hiberus' ? 'h-8 sm:h-9' : 'h-10 sm:h-12'}`}
+            />
+          ))}
+        </div>
+      </div>
+    </Shell>
+  )
+}
+
 /* ---------------------------------- Footer --------------------------------- */
 
 export function Footer() {
@@ -437,35 +468,6 @@ export function Footer() {
                   className="h-7 w-auto sm:h-8"
                 />
               </div>
-            </div>
-          </div>
-
-          {/* Los logos que colaboran llegan a color (no blancos como los
-              de "Organiza") — el filtro brightness-0 invert los deja en
-              blanco puro para que luzcan igual, sin pastilla ni fondo
-              detrás. */}
-          <div className="mt-10 border-t border-white/12 pt-8">
-            <p className="text-[0.625rem] font-bold uppercase tracking-[0.2em] text-white/55">
-              Colaboran
-            </p>
-            <div className="mt-4 flex flex-wrap items-center gap-x-7 gap-y-4">
-              {colaboradores.map((c) => (
-                // brightness-0 invert: cada logo llega en su color de marca
-                // (navy, teal, rojo…) — este filtro los deja en blanco puro,
-                // igual que los de "Organiza", sin tocar el archivo original.
-                <img
-                  key={c.alt}
-                  src={c.src}
-                  alt={c.alt}
-                  className={`w-auto brightness-0 invert ${
-                    c.alt === 'Hiberus'
-                      ? 'h-6 sm:h-7'
-                      : c.alt === 'eAgora'
-                        ? 'h-7 sm:h-8'
-                        : 'h-8 sm:h-9'
-                  }`}
-                />
-              ))}
             </div>
           </div>
 
