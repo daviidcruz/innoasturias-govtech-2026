@@ -127,10 +127,9 @@ export const programa = [
         foto: '/ponentes/judith-florez.jpg',
       },
       {
-        nombre: 'David González Fernández',
-        cargo: 'Director de SEKUENS',
-        foto: '/ponentes/david-gonzalez.jpg',
-        linkedin: 'https://www.linkedin.com/in/david-gonzalez-phd-2350896/',
+        nombre: 'Jaime Fernández Cuesta',
+        cargo: 'Responsable del área de Nuevo Conocimiento, Transferencia e Innovación, SEKUENS',
+        foto: '/ponentes/jaime-fernandez-cuesta.jpg',
       },
       {
         nombre: 'Noelia Rico',
