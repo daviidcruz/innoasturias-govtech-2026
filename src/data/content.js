@@ -130,6 +130,7 @@ export const programa = [
         nombre: 'Jaime Fernández Cuesta',
         cargo: 'Responsable del área de Nuevo Conocimiento, Transferencia e Innovación, SEKUENS',
         foto: '/ponentes/jaime-fernandez-cuesta.jpg',
+        linkedin: 'https://www.linkedin.com/in/jaime-fern%C3%A1ndez-cuesta-7520164/',
       },
       {
         nombre: 'Noelia Rico',
