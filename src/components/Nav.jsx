@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { nav, evento } from '../data/content.js'
+import { Link } from 'react-router-dom'
+import { nav, evento, eventoEmpezado } from '../data/content.js'
 
 /** Menú flotante: píldora translúcida alargada, nunca una barra negra. */
 export default function Nav() {
@@ -17,9 +18,14 @@ export default function Nav() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Marca en el menú la sección que se está leyendo
+  // Marca en el menú la sección que se está leyendo — solo tiene sentido
+  // para los anclas de esta misma página; un enlace a otra ruta (el Radar)
+  // no tiene sección que observar, así que se queda fuera sin más.
   useEffect(() => {
-    const sections = nav.map((i) => document.getElementById(i.id)).filter(Boolean)
+    const sections = nav
+      .filter((i) => i.id)
+      .map((i) => document.getElementById(i.id))
+      .filter(Boolean)
     if (!sections.length || typeof IntersectionObserver === 'undefined') return
     const io = new IntersectionObserver(
       (entries) => {
@@ -81,34 +87,46 @@ export default function Nav() {
             }`}
             style={indicator ? { left: indicator.left, width: indicator.width } : undefined}
           />
-          {nav.map((i) => (
-            <a
-              key={i.id}
-              ref={(el) => {
-                linkRefs.current[i.id] = el
-              }}
-              href={`#${i.id}`}
-              aria-current={active === i.id ? 'true' : undefined}
-              className={`relative rounded-full px-4 py-2 text-[13.5px] transition-colors duration-300 ${
-                active === i.id ? 'font-semibold text-white' : 'text-white/65 hover:text-white'
-              }`}
-            >
-              {i.label}
-            </a>
-          ))}
+          {nav.map((i) =>
+            i.href ? (
+              <Link
+                key={i.href}
+                to={i.href}
+                className="relative rounded-full px-4 py-2 text-[13.5px] text-white/65 transition-colors duration-300 hover:text-white"
+              >
+                {i.label}
+              </Link>
+            ) : (
+              <a
+                key={i.id}
+                ref={(el) => {
+                  linkRefs.current[i.id] = el
+                }}
+                href={`#${i.id}`}
+                aria-current={active === i.id ? 'true' : undefined}
+                className={`relative rounded-full px-4 py-2 text-[13.5px] transition-colors duration-300 ${
+                  active === i.id ? 'font-semibold text-white' : 'text-white/65 hover:text-white'
+                }`}
+              >
+                {i.label}
+              </a>
+            ),
+          )}
         </nav>
 
-        <a
-          href={evento.inscripcion}
-          target="_blank"
-          rel="noopener"
-          className="press ml-auto hidden shrink-0 items-center gap-2 rounded-full bg-white py-2.5 pl-5 pr-4 text-[13.5px] font-bold text-navy hover:bg-blush lg:ml-0 lg:flex"
-        >
-          Reservar gratis
-          <span className="text-[15px] leading-none" aria-hidden="true">
-            &rarr;
-          </span>
-        </a>
+        {!eventoEmpezado() && (
+          <a
+            href={evento.inscripcion}
+            target="_blank"
+            rel="noopener"
+            className="press ml-auto hidden shrink-0 items-center gap-2 rounded-full bg-white py-2.5 pl-5 pr-4 text-[13.5px] font-bold text-navy hover:bg-blush lg:ml-0 lg:flex"
+          >
+            Reservar gratis
+            <span className="text-[15px] leading-none" aria-hidden="true">
+              &rarr;
+            </span>
+          </a>
+        )}
 
         <button
           onClick={() => setOpen(!open)}
@@ -136,25 +154,38 @@ export default function Nav() {
         }`}
       >
         <div className="p-3">
-          {nav.map((i) => (
+          {nav.map((i) =>
+            i.href ? (
+              <Link
+                key={i.href}
+                to={i.href}
+                onClick={() => setOpen(false)}
+                className="block rounded-2xl px-4 py-3 text-[15px] text-white/85 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                {i.label}
+              </Link>
+            ) : (
+              <a
+                key={i.id}
+                href={`#${i.id}`}
+                onClick={() => setOpen(false)}
+                className="block rounded-2xl px-4 py-3 text-[15px] text-white/85 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                {i.label}
+              </a>
+            ),
+          )}
+          {!eventoEmpezado() && (
             <a
-              key={i.id}
-              href={`#${i.id}`}
+              href={evento.inscripcion}
+              target="_blank"
+              rel="noopener"
               onClick={() => setOpen(false)}
-              className="block rounded-2xl px-4 py-3 text-[15px] text-white/85 transition-colors hover:bg-white/10 hover:text-white"
+              className="mt-2 block rounded-full bg-white px-5 py-3.5 text-center text-[15px] font-bold text-navy"
             >
-              {i.label}
+              Reservar plaza gratis
             </a>
-          ))}
-          <a
-            href={evento.inscripcion}
-            target="_blank"
-            rel="noopener"
-            onClick={() => setOpen(false)}
-            className="mt-2 block rounded-full bg-white px-5 py-3.5 text-center text-[15px] font-bold text-navy"
-          >
-            Reservar plaza gratis
-          </a>
+          )}
         </div>
       </div>
     </header>

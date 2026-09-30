@@ -1,6 +1,6 @@
 import Countdown from './Countdown.jsx'
 import { useInView, useSectionIn, useClock } from '../hooks/useInView.js'
-import { objetivos, programa, cuadrantes, temas, evento, colaboradores } from '../data/content.js'
+import { objetivos, programa, cuadrantes, temas, evento, colaboradores, eventoEmpezado } from '../data/content.js'
 
 /* ---------------------------------- piezas --------------------------------- */
 
@@ -443,20 +443,22 @@ export function Footer() {
               <p className="mt-4 text-[1rem] leading-relaxed text-white/80">
                 {evento.fecha} · 09:00 – 14:00 h · Oviedo
               </p>
-              <a
-                href={evento.inscripcion}
-                target="_blank"
-                rel="noopener"
-                className="press group mt-7 inline-flex items-center gap-2.5 rounded-full bg-white px-7 py-3.5 text-[0.95rem] font-bold text-navy hover:bg-blush"
-              >
-                Reservar plaza gratis
-                <span
-                  className="text-[1.05rem] leading-none transition-transform duration-300 group-hover:translate-x-1"
-                  aria-hidden="true"
+              {!eventoEmpezado() && (
+                <a
+                  href={evento.inscripcion}
+                  target="_blank"
+                  rel="noopener"
+                  className="press group mt-7 inline-flex items-center gap-2.5 rounded-full bg-white px-7 py-3.5 text-[0.95rem] font-bold text-navy hover:bg-blush"
                 >
-                  &rarr;
-                </span>
-              </a>
+                  Reservar plaza gratis
+                  <span
+                    className="text-[1.05rem] leading-none transition-transform duration-300 group-hover:translate-x-1"
+                    aria-hidden="true"
+                  >
+                    &rarr;
+                  </span>
+                </a>
+              )}
             </div>
 
             <div>

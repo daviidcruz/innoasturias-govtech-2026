@@ -1,4 +1,4 @@
-import { evento } from '../data/content.js'
+import { evento, eventoEmpezado } from '../data/content.js'
 
 /**
  * Portada. Ocupa una ventana exacta: la tarjeta de cristal se estira con el
@@ -51,20 +51,22 @@ export default function Hero() {
           </p>
 
           <div className="anim-step mt-[min(1.6rem,2.5vh)] flex flex-wrap items-center gap-3 [animation-delay:0.72s]">
-            <a
-              href={evento.inscripcion}
-              target="_blank"
-              rel="noopener"
-              className="press group inline-flex items-center gap-2.5 rounded-full bg-white px-7 py-3.5 text-[0.95rem] font-bold text-navy hover:bg-blush"
-            >
-              Reservar plaza gratis
-              <span
-                className="text-[1.05rem] leading-none transition-transform duration-300 group-hover:translate-x-1"
-                aria-hidden="true"
+            {!eventoEmpezado() && (
+              <a
+                href={evento.inscripcion}
+                target="_blank"
+                rel="noopener"
+                className="press group inline-flex items-center gap-2.5 rounded-full bg-white px-7 py-3.5 text-[0.95rem] font-bold text-navy hover:bg-blush"
               >
-                &rarr;
-              </span>
-            </a>
+                Reservar plaza gratis
+                <span
+                  className="text-[1.05rem] leading-none transition-transform duration-300 group-hover:translate-x-1"
+                  aria-hidden="true"
+                >
+                  &rarr;
+                </span>
+              </a>
+            )}
             <a
               href="#programa"
               className="press rounded-full border border-white/40 px-7 py-3.5 text-[0.95rem] font-semibold text-white transition-colors hover:border-white hover:bg-white/12"
