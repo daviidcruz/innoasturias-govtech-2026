@@ -180,12 +180,12 @@ export function Jornada() {
             Marco estratégico, contraste de realidades, capacitación práctica, ordenación del
             ecosistema, demostración aplicada y activación de oportunidades. En ese orden.
           </p>
-          {/* Todavía hay ponentes por confirmar (el propio programa lo
-              muestra: algunas sesiones no tienen nombre debajo) — que el
-              aviso esté a la vista evita que alguien lea el horario como
-              definitivo antes de que lo sea. */}
+          {/* Todavía puede haber alguna sesión sin ponente confirmado (el
+              propio programa lo muestra: algunas no tienen nombre debajo) —
+              pero "preliminar" sonaba a que el evento aún no había
+              empezado, y ya está en marcha. */}
           <span className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3.5 py-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.15em] text-white/85">
-            Programa preliminar
+            Programa del día
           </span>
           <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[0.8125rem] text-white/75">
             {['contenido', 'dinamica', 'institucional', 'logistica'].map((k) => (

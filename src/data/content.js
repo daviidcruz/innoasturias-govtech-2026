@@ -17,7 +17,7 @@ export const evento = {
 export const nav = [
   { id: 'encuentro', label: 'El encuentro' },
   { id: 'programa', label: 'La jornada' },
-  { id: 'participantes', label: 'Quién viene' },
+  { id: 'participantes', label: 'Quién participa' },
   // Ruta aparte (no una sección de esta misma página) — lleva `href` en vez
   // de `id`, así Nav.jsx sabe que es un enlace de verdad, no un ancla.
   { href: '/radar', label: 'Radar' },
