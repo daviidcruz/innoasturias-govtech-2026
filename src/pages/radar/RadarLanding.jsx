@@ -244,7 +244,7 @@ export default function RadarLanding() {
               to="/radar/pantalla"
               className="press rounded-full border border-white/40 px-7 py-3.5 text-[0.95rem] font-semibold text-white transition-colors hover:border-white hover:bg-white/12"
             >
-              Ver a pantalla completa
+              Entrar en el Radar
             </Link>
           </div>
         </div>
