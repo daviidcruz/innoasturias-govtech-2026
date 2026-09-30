@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
 import { evento } from '../data/content.js'
 
-const OBJETIVO = new Date(evento.fechaISO).getTime()
+const INICIO = new Date(evento.fechaISO).getTime()
 
-function restante() {
-  const ms = OBJETIVO - Date.now()
-  if (ms <= 0) return null
+/** Ya no es cuenta atrás hasta el comienzo — el evento ya ha empezado, así
+ *  que ahora cuenta hacia delante desde ese mismo instante. Si por lo que
+ *  sea se mira antes de la hora de inicio, se queda en 0 en vez de dar
+ *  números negativos. */
+function transcurrido() {
+  const ms = Math.max(0, Date.now() - INICIO)
   const s = Math.floor(ms / 1000)
   return {
     dias: Math.floor(s / 86400),
@@ -22,24 +25,15 @@ const UNIDADES = [
   ['segundos', 'seg'],
 ]
 
-/** Cuenta atrás hasta el comienzo de la jornada. */
+/** Cuenta hacia delante desde el comienzo de la jornada — información del
+ *  evento en directo, no una cuenta atrás (esa ya cumplió su función). */
 export default function Countdown() {
-  const [t, setT] = useState(restante)
+  const [t, setT] = useState(transcurrido)
 
   useEffect(() => {
-    // Si la jornada ya pasó no hay nada que contar: se detiene el intervalo.
-    if (!t) return
-    const id = setInterval(() => setT(restante()), 1000)
+    const id = setInterval(() => setT(transcurrido()), 1000)
     return () => clearInterval(id)
-  }, [t === null])
-
-  if (!t) {
-    return (
-      <p className="text-center text-[1.0625rem] font-semibold text-white">
-        La jornada ya se ha celebrado. Gracias a quienes vinieron.
-      </p>
-    )
-  }
+  }, [])
 
   return (
     <div className="flex flex-wrap items-end justify-center gap-x-3 gap-y-4 sm:gap-x-5">
