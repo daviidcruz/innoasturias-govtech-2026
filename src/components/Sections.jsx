@@ -37,16 +37,7 @@ function LinkedInIcon({ className = '' }) {
 
 /* -------------------------------- Cuenta atrás ----------------------------- */
 
-/* Fecha y hora, en un dato: son cortos y van juntos. El lugar es harina de
-   otro costal —nombre del sitio y dirección postal, dos frases— así que
-   forzarlo en la misma caja de tres columnas iguales que "Fecha" y "Horario"
-   dejaba una celda desbordada y las otras dos con hueco de sobra. Ahora el
-   lugar tiene su propia tarjeta, del tamaño que le corresponde, con enlace
-   directo al mapa: información útil de verdad, no sólo texto de relleno. */
 const fechaHora = `${evento.fecha} · 09:00 – 14:00 h`
-const mapaUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-  `${evento.lugar}, ${evento.direccion}`,
-)}`
 
 export function CuentaAtras() {
   const ref = useInView()
@@ -61,22 +52,9 @@ export function CuentaAtras() {
           <Countdown />
         </div>
 
-        <p className="mt-7 text-[0.9375rem] text-white/75">{fechaHora}</p>
-
-        <div className="mx-auto mt-5 flex max-w-[26rem] flex-col items-center gap-4 rounded-card border border-white/12 bg-white/[0.04] px-6 py-5 sm:max-w-none sm:w-fit sm:flex-row sm:gap-6 sm:px-7">
-          <div>
-            <p className="text-[1rem] font-semibold leading-snug text-white">{evento.lugar}</p>
-            <p className="mt-0.5 text-[0.8125rem] text-white/60">{evento.direccion}</p>
-          </div>
-          <a
-            href={mapaUrl}
-            target="_blank"
-            rel="noopener"
-            className="press inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/25 px-5 py-2.5 text-[0.8125rem] font-semibold text-white transition-colors hover:border-white hover:bg-white/10"
-          >
-            Cómo llegar
-            <span aria-hidden="true">&rarr;</span>
-          </a>
+        <div className="mx-auto mt-7 max-w-[26rem] rounded-card border border-white/12 bg-white/[0.04] px-6 py-5 text-center sm:max-w-none sm:w-fit sm:px-8">
+          <p className="text-[0.9375rem] text-white/75">{fechaHora}</p>
+          <p className="mt-1 text-[1rem] font-semibold leading-snug text-white">Cámara de Comercio de Oviedo</p>
         </div>
       </div>
     </Shell>

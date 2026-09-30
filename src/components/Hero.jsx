@@ -81,12 +81,6 @@ export default function Hero() {
                 </span>
               </a>
             )}
-            <a
-              href="#programa"
-              className="press rounded-full border border-white/40 px-7 py-3.5 text-[0.95rem] font-semibold text-white transition-colors hover:border-white hover:bg-white/12"
-            >
-              Ver el programa
-            </a>
             <Link
               to="/radar"
               className="press rounded-full border border-white/40 px-7 py-3.5 text-[0.95rem] font-semibold text-white transition-colors hover:border-white hover:bg-white/12"
