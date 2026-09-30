@@ -46,7 +46,7 @@ export function CuentaAtras() {
     <Shell innerRef={ref} className="pb-16 pt-20 sm:pb-20 sm:pt-24">
       <div data-reveal="lift" className="glass-2 rounded-panel p-7 text-center sm:p-10">
         <p className="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-blush">
-          Llevamos en marcha
+          El evento fue hace
         </p>
         <div className="mt-5">
           <Countdown />

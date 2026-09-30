@@ -30,27 +30,13 @@ export default function Hero() {
         </div>
 
         <div className="mt-8 sm:mt-auto">
-          {/* Antes de empezar, lo primero que tiene que quedar claro es que
-              la entrada es gratis y quedan pocas plazas — invitación a
-              inscribirse. Con el evento ya en marcha esa invitación no pinta
-              nada: se sustituye por un aviso de que está pasando ahora
-              mismo. */}
           <div className="anim-step mb-[min(1.25rem,2vh)] flex flex-wrap items-center gap-2">
-            {eventoEmpezado() ? (
-              <span className="inline-flex items-center gap-2 rounded-full bg-mint/95 px-3.5 py-1.5 text-[0.6875rem] font-extrabold uppercase tracking-[0.15em] text-ink">
-                <span className="h-1.5 w-1.5 rounded-full bg-ink" aria-hidden="true" />
-                En directo
-              </span>
-            ) : (
-              <>
-                <span className="rounded-full bg-mint/95 px-3.5 py-1.5 text-[0.6875rem] font-extrabold uppercase tracking-[0.15em] text-ink">
-                  {evento.entrada}
-                </span>
-                <span className="rounded-full border border-white/25 bg-white/10 px-3.5 py-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.15em] text-white/85">
-                  {evento.plazas}
-                </span>
-              </>
-            )}
+            <span className="rounded-full bg-mint/95 px-3.5 py-1.5 text-[0.6875rem] font-extrabold uppercase tracking-[0.15em] text-ink">
+              {evento.entrada}
+            </span>
+            <span className="rounded-full border border-white/25 bg-white/10 px-3.5 py-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.15em] text-white/85">
+              {evento.plazas}
+            </span>
           </div>
 
           <h1 className="anim-wordmark text-[clamp(2.25rem,min(9vw,13vh),8rem)] font-extrabold leading-[0.88] tracking-[-0.038em] text-white">
