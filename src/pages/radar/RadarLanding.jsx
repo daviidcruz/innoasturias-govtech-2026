@@ -183,47 +183,97 @@ export default function RadarLanding() {
           >
             <span aria-hidden="true">&larr;</span> InnoAsturias GovTech 2026
           </Link>
-          <span className="inline-flex items-center gap-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.18em] text-blush">
-            <span className="h-1.5 w-1.5 rounded-full bg-blush" aria-hidden="true" />
-            En directo
-          </span>
         </div>
 
         {/* ------------------------------------------------------------- Hero */}
-        <p className="mt-8 text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-blush">
-          Radar del ecosistema GovTech asturiano
-        </p>
-        <h1 className="on-photo mt-2 text-[clamp(2rem,4.8vw,3.5rem)] font-extrabold leading-[1.02] tracking-[-0.035em] text-white">
-          Quién trae qué a InnoAsturias GovTech
+        {/* Dos insignias, no una: la primera dice de dónde viene (para no
+            perder el contexto de por qué existe), la segunda deja clarísimo
+            que no es cosa de un solo día — sigue abierto siempre, y esa es
+            la parte que más se tiende a asumir mal solo con el nombre del
+            evento en el título. */}
+        <div className="mt-8 flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-white/25 bg-white/10 px-3.5 py-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.15em] text-white/80">
+            Nacido en InnoAsturias GovTech 2026
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-mint/95 px-3.5 py-1.5 text-[0.6875rem] font-extrabold uppercase tracking-[0.15em] text-ink">
+            <span className="h-1.5 w-1.5 rounded-full bg-ink" aria-hidden="true" />
+            Abierto siempre
+          </span>
+        </div>
+
+        <h1 className="on-photo mt-4 text-[clamp(2.5rem,6vw,4.5rem)] font-extrabold leading-[0.98] tracking-[-0.038em] text-white">
+          El Radar del ecosistema GovTech asturiano
         </h1>
-        <p className="mt-5 max-w-[56ch] text-[1.0625rem] leading-[1.7] text-white/75">
-          Durante InnoAsturias GovTech 2026 construimos en directo un mapa del ecosistema:
-          administración, empresas, startups y universidad, cada cual con el reto o la solución
-          que trae a la sala. Cada respuesta nueva aparece aquí al momento.
+        <p className="mt-5 max-w-[60ch] text-[1.0625rem] leading-[1.7] text-white/85 sm:text-[1.15rem]">
+          Empezó a construirse en directo durante InnoAsturias GovTech 2026, cruzando retos con
+          soluciones según iba llegando gente a la sala — pero no se cierra cuando termina la
+          jornada. Sigue abierto para siempre: en cualquier momento puedes contar tu reto o tu
+          solución y la IA busca, entre todo lo que ya hay aquí, con quién puedes encajar de
+          verdad.
         </p>
         <p className="mt-3 text-[0.9375rem] text-white/55">
           {evento.fecha} · {evento.lugar}
         </p>
 
-        <div className="mt-7 flex flex-wrap items-center gap-3">
-          <Link
-            to="/radar/participar"
-            className="press group inline-flex items-center gap-2.5 rounded-full bg-white px-7 py-3.5 text-[0.95rem] font-bold text-navy hover:bg-blush"
-          >
-            Sumar mi organización al Radar
-            <span
-              className="text-[1.05rem] leading-none transition-transform duration-300 group-hover:translate-x-1"
-              aria-hidden="true"
+        {/* Panel propio para la llamada a la acción — separado del párrafo
+            de arriba a propósito, para que sea lo primero que salte a la
+            vista al entrar, no un enlace más perdido entre texto. */}
+        <div className="glass-1 mt-8 flex flex-col gap-5 rounded-plate p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+          <div>
+            <p className="text-[0.6875rem] font-bold uppercase tracking-[0.2em] text-blush">
+              Nunca es tarde para entrar
+            </p>
+            <p className="mt-2 max-w-[42ch] text-[1.0625rem] font-semibold leading-snug text-white">
+              Cuenta tu reto o tu solución ahora mismo y consigue un match de verdad
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-wrap items-center gap-3">
+            <Link
+              to="/radar/participar"
+              className="press group inline-flex items-center gap-2.5 rounded-full bg-white px-7 py-3.5 text-[0.95rem] font-bold text-navy hover:bg-blush"
             >
-              &rarr;
-            </span>
-          </Link>
-          <Link
-            to="/radar/pantalla"
-            className="press rounded-full border border-white/40 px-7 py-3.5 text-[0.95rem] font-semibold text-white transition-colors hover:border-white hover:bg-white/12"
-          >
-            Ver a pantalla completa
-          </Link>
+              Sumar mi organización al Radar
+              <span
+                className="text-[1.05rem] leading-none transition-transform duration-300 group-hover:translate-x-1"
+                aria-hidden="true"
+              >
+                &rarr;
+              </span>
+            </Link>
+            <Link
+              to="/radar/pantalla"
+              className="press rounded-full border border-white/40 px-7 py-3.5 text-[0.95rem] font-semibold text-white transition-colors hover:border-white hover:bg-white/12"
+            >
+              Ver a pantalla completa
+            </Link>
+          </div>
+        </div>
+
+        {/* ------------------------------------------------------- Cómo funciona */}
+        <div className="mt-10 grid gap-3 sm:grid-cols-3">
+          {[
+            {
+              n: '1',
+              t: 'Cuentas tu reto o tu solución',
+              d: 'Un formulario de un minuto, sin registro ni cuenta previa.',
+            },
+            {
+              n: '2',
+              t: 'La IA busca coincidencias reales',
+              d: 'No por categoría marcada en un checkbox — por lo que de verdad resuelve.',
+            },
+            {
+              n: '3',
+              t: 'Si hay match, aparece al momento',
+              d: 'Con una frase explicando por qué encajáis, para las dos partes.',
+            },
+          ].map((s) => (
+            <div key={s.n} className="glass-3 rounded-card p-6">
+              <span className="text-[1.75rem] font-extrabold leading-none text-blush/90">{s.n}</span>
+              <h3 className="mt-3 text-[1rem] font-bold leading-snug text-white">{s.t}</h3>
+              <p className="mt-2 text-[0.8125rem] leading-[1.55] text-white/65">{s.d}</p>
+            </div>
+          ))}
         </div>
 
         {/* --------------------------------------------------- Quién trae qué */}
