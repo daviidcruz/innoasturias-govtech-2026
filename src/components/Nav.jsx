@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { nav, evento, eventoEmpezado } from '../data/content.js'
 
@@ -7,9 +7,6 @@ export default function Nav() {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState('')
-  const [indicator, setIndicator] = useState(null)
-  const navRef = useRef(null)
-  const linkRefs = useRef({})
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60)
@@ -37,27 +34,6 @@ export default function Nav() {
     return () => io.disconnect()
   }, [])
 
-  // La píldora del enlace activo se desliza en vez de aparecer y desaparecer
-  useEffect(() => {
-    const medir = () => {
-      const el = linkRefs.current[active]
-      const nav = navRef.current
-      if (!el || !nav) return
-      const a = el.getBoundingClientRect()
-      const b = nav.getBoundingClientRect()
-      setIndicator({ left: a.left - b.left, width: a.width })
-    }
-    medir()
-    // El contenedor cambia de ancho al encogerse (500ms): se vuelve a medir
-    // al terminar esa transición, y también al redimensionar la ventana.
-    const t = setTimeout(medir, 520)
-    window.addEventListener('resize', medir)
-    return () => {
-      clearTimeout(t)
-      window.removeEventListener('resize', medir)
-    }
-  }, [active, scrolled])
-
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-5 sm:pt-4">
       <div
@@ -78,34 +54,25 @@ export default function Nav() {
           </span>
         </a>
 
-        <nav ref={navRef} className="relative mx-auto hidden items-center lg:flex">
-          {/* Píldora deslizante detrás del enlace activo */}
-          <span
-            aria-hidden="true"
-            className={`pointer-events-none absolute inset-y-1 rounded-full bg-white/15 transition-[left,width,opacity] duration-400 ease-[cubic-bezier(.16,1,.3,1)] ${
-              indicator ? 'opacity-100' : 'opacity-0'
-            }`}
-            style={indicator ? { left: indicator.left, width: indicator.width } : undefined}
-          />
+        <nav className="relative ml-auto hidden items-center gap-2 lg:flex">
           {nav.map((i) =>
             i.href ? (
               <Link
                 key={i.href}
                 to={i.href}
-                className="relative rounded-full px-4 py-2 text-[13.5px] text-white/65 transition-colors duration-300 hover:text-white"
+                className="press relative rounded-full border border-white/15 bg-white/5 px-4 py-2 text-[13.5px] text-white/75 transition-colors duration-300 hover:border-white/30 hover:bg-white/10 hover:text-white"
               >
                 {i.label}
               </Link>
             ) : (
               <a
                 key={i.id}
-                ref={(el) => {
-                  linkRefs.current[i.id] = el
-                }}
                 href={`#${i.id}`}
                 aria-current={active === i.id ? 'true' : undefined}
-                className={`relative rounded-full px-4 py-2 text-[13.5px] transition-colors duration-300 ${
-                  active === i.id ? 'font-semibold text-white' : 'text-white/65 hover:text-white'
+                className={`press relative rounded-full border px-4 py-2 text-[13.5px] transition-colors duration-300 ${
+                  active === i.id
+                    ? 'border-white/30 bg-white/12 font-semibold text-white'
+                    : 'border-white/15 bg-white/5 text-white/75 hover:border-white/30 hover:bg-white/10 hover:text-white'
                 }`}
               >
                 {i.label}
