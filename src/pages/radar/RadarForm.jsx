@@ -319,6 +319,13 @@ export default function RadarForm() {
                     >
                       {enviando ? 'Enviando…' : 'Enviar'}
                     </button>
+                    <p className="mt-3 text-center text-[0.75rem] text-white/45">
+                      Al enviar, esta aportación se muestra públicamente en el Radar. Más info en la{' '}
+                      <Link to="/privacidad" className="underline hover:text-white/70">
+                        política de privacidad
+                      </Link>
+                      .
+                    </p>
                   </div>
                 )}
               </motion.div>

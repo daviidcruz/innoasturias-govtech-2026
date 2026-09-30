@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import Countdown from './Countdown.jsx'
 import { useInView, useSectionIn, useClock } from '../hooks/useInView.js'
 import { objetivos, programa, cuadrantes, temas, evento, colaboradores, eventoEmpezado } from '../data/content.js'
@@ -461,14 +462,28 @@ export function Footer() {
           </div>
 
           <div className="mt-8 flex flex-col gap-3 border-t border-white/12 pt-6">
-            <a
-              href="https://novagob.org"
-              target="_blank"
-              rel="noopener"
-              className="text-[0.8125rem] text-white/55 transition-colors hover:text-white"
-            >
-              © {new Date().getFullYear()} Fundación NovaGob
-            </a>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              <a
+                href="https://novagob.org"
+                target="_blank"
+                rel="noopener"
+                className="text-[0.8125rem] text-white/55 transition-colors hover:text-white"
+              >
+                © {new Date().getFullYear()} Fundación NovaGob
+              </a>
+              <Link
+                to="/privacidad"
+                className="text-[0.8125rem] text-white/55 transition-colors hover:text-white"
+              >
+                Política de privacidad
+              </Link>
+              <Link
+                to="/terminos-y-condiciones"
+                className="text-[0.8125rem] text-white/55 transition-colors hover:text-white"
+              >
+                Términos y condiciones
+              </Link>
+            </div>
             <p className="max-w-[86ch] text-[0.75rem] font-bold leading-relaxed text-white/60">
               Subvencionado por el Principado de Asturias, a través de la Consejería de Ciencia,
               Industria y Empleo, con cargo al Presupuesto General del Principado de Asturias 2026

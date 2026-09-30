@@ -11,6 +11,8 @@ const RadarForm = lazy(() => import('./pages/radar/RadarForm.jsx'))
 const RadarPantalla = lazy(() => import('./pages/radar/RadarPantalla.jsx'))
 const RadarResultados = lazy(() => import('./pages/radar/RadarResultados.jsx'))
 const RadarLanding = lazy(() => import('./pages/radar/RadarLanding.jsx'))
+const Privacidad = lazy(() => import('./pages/legal/Privacidad.jsx'))
+const Terminos = lazy(() => import('./pages/legal/Terminos.jsx'))
 
 export default function App() {
   return (
@@ -22,6 +24,8 @@ export default function App() {
           <Route path="/radar/participar" element={<RadarForm />} />
           <Route path="/radar/pantalla" element={<RadarPantalla />} />
           <Route path="/radar/resultados" element={<RadarResultados />} />
+          <Route path="/privacidad" element={<Privacidad />} />
+          <Route path="/terminos-y-condiciones" element={<Terminos />} />
         </Routes>
       </Suspense>
       <Analytics />

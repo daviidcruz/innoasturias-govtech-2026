@@ -100,6 +100,17 @@
   }
   /* Texto suelto sobre la foto: una sombra suave lo despega del fondo */
   .on-photo { text-shadow: 0 2px 26px rgba(4, 11, 26, .6); }
+
+  /* Cuerpo de las páginas legales (privacidad, términos): no hay plugin de
+     tipografía instalado, así que el espaciado entre bloques va aquí en
+     vez de repetirse a mano en cada párrafo de esas dos páginas. */
+  .legal-body h2 { margin-top: 2rem; font-size: 1.125rem; font-weight: 800; letter-spacing: -0.01em; color: #fff; }
+  .legal-body h2:first-child { margin-top: 0; }
+  .legal-body p { margin-top: 0.75rem; }
+  .legal-body ul { margin-top: 0.75rem; padding-left: 1.25rem; list-style: disc; }
+  .legal-body li { margin-top: 0.375rem; }
+  .legal-body a { color: #fff; text-decoration: underline; text-underline-offset: 2px; }
+  .legal-body strong { font-weight: 700; color: #fff; }
 }
 
 /* Un fondo fijo con muchos paneles desenfocados encima cuesta GPU. En móvil
