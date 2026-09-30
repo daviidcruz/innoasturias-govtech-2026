@@ -30,15 +30,6 @@ export default function Hero() {
         </div>
 
         <div className="mt-8 sm:mt-auto">
-          <div className="anim-step mb-[min(1.25rem,2vh)] flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-mint/95 px-3.5 py-1.5 text-[0.6875rem] font-extrabold uppercase tracking-[0.15em] text-ink">
-              {evento.entrada}
-            </span>
-            <span className="rounded-full border border-white/25 bg-white/10 px-3.5 py-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.15em] text-white/85">
-              {evento.plazas}
-            </span>
-          </div>
-
           <h1 className="anim-wordmark text-[clamp(2.25rem,min(9vw,13vh),8rem)] font-extrabold leading-[0.88] tracking-[-0.038em] text-white">
             InnoAsturias
           </h1>

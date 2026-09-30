@@ -69,18 +69,18 @@ export function Encuentro() {
   return (
     <Shell innerRef={ref} id="encuentro" className="py-16 sm:py-24">
       <Titular className="max-w-[24ch]" data-reveal="up">
-        Una mañana para pasar de la conversación a la acción.
+        Una mañana que pasó de la conversación a la acción.
       </Titular>
 
       <div className="mt-12 grid gap-4 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
         <div data-reveal="lift" className="glass-2 glass-2--dim rounded-panel p-8 sm:p-10 lg:p-12">
           <p className="max-w-[52ch] text-[1.125rem] leading-[1.7] text-white">
             Asturias tiene capacidades tecnológicas, conocimiento y tejido innovador. Lo que faltaba
-            era una sala donde la Administración traiga sus retos y el ecosistema traiga sus
-            soluciones.
+            era una sala donde la Administración trajera sus retos y el ecosistema trajera sus
+            soluciones: esa sala fue InnoAsturias GovTech 2026.
           </p>
           <p className="mt-5 max-w-[52ch] text-[1.0625rem] leading-[1.75] text-white/70">
-            <strong className="font-semibold text-white">InnoAsturias GovTech 2026</strong> aplica al
+            <strong className="font-semibold text-white">InnoAsturias GovTech 2026</strong> aplicó al
             contexto asturiano una metodología propia de Fundación NovaGob, contrastada a lo largo de
             más de doce años: identificar retos reales, mapear las capacidades que ya hay en el
             territorio y activar colaboración con impacto económico.
@@ -104,7 +104,7 @@ export function Encuentro() {
           className="glass-3 glass-3--dim rounded-panel p-8 sm:p-10"
         >
           <p className="text-[0.6875rem] font-bold uppercase tracking-[0.18em] text-white/55">
-            Lo que se lleva cada asistente
+            Lo que se llevó cada asistente
           </p>
           <dl className="mt-6">
             {objetivos.map((o, i) => (
@@ -320,8 +320,8 @@ export function Radar() {
       <div className="flex flex-wrap items-end justify-between gap-8">
         <Titular className="max-w-[20ch]">Cuatro mundos, una misma mesa</Titular>
         <p className="on-photo max-w-[34ch] text-[0.9375rem] leading-relaxed text-white/80">
-          El Radar ordena a los asistentes en cuatro bloques y busca los huecos: quién puede resolver
-          qué, y con quién todavía no ha hablado.
+          El Radar ordenó a los asistentes en cuatro bloques para buscar los huecos: quién podía
+          resolver qué, y con quién todavía no había hablado.
         </p>
       </div>
 
