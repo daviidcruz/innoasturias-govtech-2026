@@ -4,7 +4,7 @@ import Hero from '../components/Hero.jsx'
 // Radar (la sección "Cuatro mundos" de la landing) se renombra al importar:
 // el nombre ya lo usa el Radar del ecosistema de /radar, que es una
 // herramienta completamente distinta, no la misma sección con otro nombre.
-import { CuentaAtras, Encuentro, Jornada, Radar as RadarSection, Colaboran, Footer } from '../components/Sections.jsx'
+import { CuentaAtras, AsiFue, Encuentro, Jornada, Radar as RadarSection, Colaboran, Footer } from '../components/Sections.jsx'
 import { useHashLanding } from '../hooks/useHashLanding.js'
 
 export default function Home() {
@@ -18,6 +18,7 @@ export default function Home() {
         <Hero />
         <Colaboran />
         <CuentaAtras />
+        <AsiFue />
         <Encuentro />
         <Jornada />
         <RadarSection />

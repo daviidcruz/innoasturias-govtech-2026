@@ -296,3 +296,23 @@ export const colaboradores = [
   { src: '/brand/fade.png', alt: 'FADE · Federación Asturiana de Empresarios' },
   { src: '/brand/sekuens.png', alt: 'SEKUENS · Agencia de Ciencia, Competitividad Empresarial e Innovación del Principado de Asturias' },
 ]
+
+/** Fotos de la jornada, en el orden en que se hicieron (el número de IMG de
+ *  cada una: 0024, 0029, 0038, 0084, 0127, 0176, 0180, 0290, 0314, 0321,
+ *  0345, 0368), que es también el orden de la jornada. `src` es la versión
+ *  grande (la del visor); `mini`, la miniatura ligera del mosaico — la foto
+ *  de grupo no la necesita, se muestra grande. */
+export const galeria = [
+  { src: '/galeria/grupo.jpg', alt: 'Ponentes y organización de InnoAsturias GovTech 2026 sobre el escenario' }, // IMG_0024
+  { src: '/galeria/sala.jpg', mini: '/galeria/mini/sala.jpg', alt: 'El público siguiendo la jornada en el salón de la Cámara de Comercio de Oviedo' }, // IMG_0029
+  { src: '/galeria/apertura.jpg', mini: '/galeria/mini/apertura.jpg', alt: 'Mesa de la apertura institucional' }, // IMG_0038
+  { src: '/galeria/ponente-1.jpg', mini: '/galeria/mini/ponente-1.jpg', alt: 'Una ponente durante su intervención' }, // IMG_0084
+  { src: '/galeria/keynote.jpg', mini: '/galeria/mini/keynote.jpg', alt: 'Un ponente durante su intervención, con la presentación proyectada' }, // IMG_0127
+  { src: '/galeria/mesa.jpg', mini: '/galeria/mini/mesa.jpg', alt: 'Mesa de ponentes durante la mesa redonda' }, // IMG_0176
+  { src: '/galeria/govtech.jpg', mini: '/galeria/mini/govtech.jpg', alt: 'Intervención en el atril, con la pantalla de GovTech en el Principado de Asturias' }, // IMG_0180
+  { src: '/galeria/innoclass.jpg', mini: '/galeria/mini/innoclass.jpg', alt: 'Un ponente en una de las sesiones InnoClass' }, // IMG_0290
+  { src: '/galeria/ponente-2.jpg', mini: '/galeria/mini/ponente-2.jpg', alt: 'Una ponente explicando su proyecto' }, // IMG_0314
+  { src: '/galeria/innoia.jpg', mini: '/galeria/mini/innoia.jpg', alt: 'Sesión InnoIA sobre detección de prácticas anticompetitivas en la contratación pública' }, // IMG_0321
+  { src: '/galeria/demo.jpg', mini: '/galeria/mini/demo.jpg', alt: 'Una demo proyectada en pantalla durante la jornada' }, // IMG_0345
+  { src: '/galeria/innodemos.jpg', mini: '/galeria/mini/innodemos.jpg', alt: 'Un ponente presentando su demo con la pantalla al fondo' }, // IMG_0368
+]

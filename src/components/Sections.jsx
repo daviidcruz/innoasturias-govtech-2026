@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Countdown from './Countdown.jsx'
+import Visor from './Visor.jsx'
 import { useInView, useSectionIn, useClock } from '../hooks/useInView.js'
-import { objetivos, programa, cuadrantes, temas, evento, colaboradores, eventoEmpezado } from '../data/content.js'
+import { objetivos, programa, cuadrantes, temas, evento, colaboradores, galeria, eventoEmpezado } from '../data/content.js'
 
 /* ---------------------------------- piezas --------------------------------- */
 
@@ -58,6 +60,64 @@ export function CuentaAtras() {
           <p className="mt-1 text-[1rem] font-semibold leading-snug text-white">Cámara de Comercio de Oviedo</p>
         </div>
       </div>
+    </Shell>
+  )
+}
+
+/* -------------------------------- Así fue ---------------------------------- */
+
+export function AsiFue() {
+  const ref = useInView()
+  const [visor, setVisor] = useState(null)
+
+  return (
+    <Shell innerRef={ref} id="asi-fue" className="py-16 sm:py-24">
+      <Titular data-reveal="up">Así fue la edición 2026</Titular>
+      <p
+        data-reveal="rise"
+        className="on-photo mt-5 max-w-[44ch] text-[1.0625rem] leading-relaxed text-white/85"
+      >
+        De la conversación a la acción: la jornada en imágenes.
+      </p>
+
+      {/* Las fotos van en el orden de su número de IMG (cronológico). La de
+          grupo, la primera, ocupa dos columnas; en escritorio se recorta un
+          poco por arriba (techo) para igualar la altura de las verticales. */}
+      <ul className="mt-10 flex flex-wrap justify-center gap-4">
+        {galeria.map((f, i) => (
+          <li
+            key={f.src}
+            data-reveal="rise"
+            style={{ '--d': `${Math.min(i, 5) * 60}ms` }}
+            className={
+              i === 0
+                ? 'w-full sm:w-[calc(66.666%-0.33rem)] lg:w-[calc(50%-0.5rem)]'
+                : 'w-[calc(50%-0.5rem)] sm:w-[calc(33.333%-0.67rem)] lg:w-[calc(25%-0.75rem)]'
+            }
+          >
+            <button
+              type="button"
+              onClick={() => setVisor(i)}
+              aria-label={`Ampliar foto: ${f.alt}`}
+              className="press group block h-full w-full overflow-hidden rounded-card focus-visible:rounded-card"
+            >
+              <img
+                src={f.mini ?? f.src}
+                alt={f.alt}
+                loading={i === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+                className={`w-full object-cover transition-transform duration-500 group-hover:scale-[1.04] ${
+                  i === 0 ? 'aspect-[4/3] object-bottom sm:aspect-[3/2]' : 'aspect-[3/4]'
+                }`}
+              />
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      {visor !== null && (
+        <Visor fotos={galeria} indice={visor} onCambia={setVisor} onCierra={() => setVisor(null)} />
+      )}
     </Shell>
   )
 }
